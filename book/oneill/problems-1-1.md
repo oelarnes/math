@@ -1,6 +1,6 @@
 ---
   kernelspec:
-    display_name: Python 3
+    display_name: 'Python 3'
     name: python3
 ---
 
@@ -66,15 +66,18 @@ Find the value of the function $f = x^2y - y^2z$ at each point:
 
 *Notes:*
 
-Let's check our answers by trying out [Sage](sagemath.org).
+Let's check our answers by trying out [Sage](sagemath.org). In Sage, our
+notion of the function as an algebraic expression of functions is
+paralleled by defining the function as a symbolic expression.
 
-```{code-cell}{python}
+```{code-cell} python
 from sage.all import *
 
-f = lambda x, y, z: x ** 2 * y - y ** 2 * z
+var('x, y, z, a, t')
 
-a = var('a')
-t = var('t')
+xyz = lambda v: {'x': v[0], 'y': v[1], 'z': v[2]}
+
+f = x ** 2 * y - y ** 2 * z
 
 cases = {
     'a': [1, 1, 1],
@@ -84,5 +87,28 @@ cases = {
 }
 
 for case, args in cases.items():
-    print(f"({case}): {f(*args)}")
+    print(f"({case}): f(*{(args)}) = {f.subs(**xyz(args))}")
+```
+
+### Problem 3
+
+Express $\pd{f}{x}$ in terms of $x, y$ and $z$ if
+
+(a) $f = x\sin(xy) + y\cos(xz).$ 
+
+(b) $f = \sin g, g = e^h, h=x^2 + y^2 + z^2$.
+
+---
+
+*Solution:*
+
+(a) $\pd{f}{x} = \bx{\sin(xy) + xy\cos(xy) - yz\sin(xz)}$.
+
+(b) $\pd{f}{x} = \pd{}{g}\sin g \cdot \pd{g}{x} = \cos g \cdot \pd{}{h}(e^h) \cdot \pd{h}{x} = \bx{2xe^{x^2 + y^2 + z^2}\cos e^{x^2 + y^2 + z^2}}$.
+
+```{code-cell}{python}
+f = x * sin(x*y) + y * cos(x * z)
+print(f.diff(x))
+f = sin(exp(x**2 + y**2 + z**2))
+print(f.diff(x))
 ```
