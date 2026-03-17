@@ -1,0 +1,28 @@
+# See docs at: https://mystmd.org/guide/frontmatter
+version: 1
+project:
+  id: cb1709c7-1695-4f45-a8de-2444f1357557
+  title: MagicFlea's Math Notes
+  description: Writing up some math for fun
+  keywords: 
+    - math
+    - differential-geometry
+    - problem-sets
+    - solutions
+  authors: 
+    - MagicFlea
+  github: oelarnes/math
+  math:
+    '\R': '\mathbb{R}'
+    '\v': '\mathbf'
+    '\pd': '\frac{\partial #1}{\partial #2}'
+    '\spd': '\frac{\partial^2 #1}{\partial #2 \partial #3}'
+    '\bx': '\boxed'
+  kernelspec:
+    display_name: Python 3
+    name: python3
+site:
+  template: book-theme
+  # options:
+  #   favicon: favicon.ico
+  #   logo: site_logo.png
