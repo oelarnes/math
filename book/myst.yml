@@ -18,9 +18,6 @@ project:
     '\pd': '\frac{\partial #1}{\partial #2}'
     '\spd': '\frac{\partial^2 #1}{\partial #2 \partial #3}'
     '\bx': '\boxed'
-  kernelspec:
-    display_name: Python 3
-    name: python3
 site:
   template: book-theme
   # options:
