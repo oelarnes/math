@@ -9,12 +9,12 @@
 
 ### Problem 1
 
-Let $f = x^2y$ and $g = \sin{z}$ be functions on $\R^3$. Express the following
+Let $f = x^2y$ and $g = y\sin{z}$ be functions on $\R^3$. Express the following
 functions in terms of $x, y, z:$
 
 (a) $fg^2$.
 
-(b) $\pd{f}{x} g + \pd{g}{x} f$.
+(b) $\pd{f}{x} g + \pd{g}{y} f$.
 
 (c) $\spd{(fg)}{y}{z}$.
 
@@ -24,11 +24,11 @@ functions in terms of $x, y, z:$
 
 *Solution:*
 
-(a) $fg^2 = \bx{x^2y\sin^2{z}}$.
+(a) $fg^2 = \bx{x^2y^3\sin^2{z}}$.
 
-(b) $\pd{f}{x} g + \pd{g}{x} f = \pd{(fg)}{x}= \bx{2xy\sin{z}} $.
+(b) $\pd{f}{x} g + \pd{g}{y} f = 2xy^2\sin{z} + x^2y\sin{z}$.
 
-(c) $\spd{(fg)}{y}{z} = \pd{}{y} \pd{(fg)}{x} = \pd{}{y}2xy\sin{z} = \bx{2x\sin{z}}.$
+(c) $\spd{(fg)}{y}{z} = \pd{}{y} \pd{(fg)}{x} = \pd{}{y}2xy^2\sin{z} = \bx{4xy\sin{z}}.$
 
 (d) $\pd{}{y}(\sin f) = \pd{}{f}(\sin f)\pd{f}{y} = \bx{x^2\cos(x^2y)}$.
 
@@ -353,5 +353,53 @@ so the vector field in terms of the new basis is
 :enumerated: false
 
 xU_1 + yU_2 + zU_3 = \bx{\frac{x - zx}{1 + x^2}V_1 + yV_2 + \frac{x^2 + z}{1 + x^2}V_3}.
+```
+
+## Problem Set 1.3
+
+### Exercise 1
+
+Let $\v{v}_p$ be the tangent vector to $\R^3$ with $\v{v} = (2, -1, 3)$ and $\v{p} = (2, 0, -1).$
+Working directly from the definition, compute the directional derivative $\v{v}_p[f]$, where
+
+(a) $f = y^2z$.
+
+(b) $f = y^7$.
+
+(c) $f = e^x\cos{y}.$
+
+### Exercise 2
+
+Compute the derivatives in Exercise 1 using Lemma 3.2.
+
+---
+
+*Solution:*
+
+(a)
+```{math}
+:enumerated: false
+
+\v{v}_p[f] &= 2U_1\pd{f}{x}(\v{p}) - U_2\pd{f}{y}(\v{p}) + 3U_3\pd{f}{z}(\v{p}) \\
+    &= -1U_2(2yz)_{|(2, 0, -1)} + 3U_3(y^2)_{|(2, 0, -1)} \\
+    &= 0.
+```
+
+(b)
+```{math}
+:enumerated: false
+
+\v{v}_p[f] &= 2U_1\pd{f}{x}(\v{p}) - U_2\pd{f}{y}(\v{p}) + 3U_3\pd{f}{z}(\v{p}) \\
+    &= -1U_2(7y^6)_{|(2, 0, -1)} \\
+    &= 0.
+```
+
+(c)
+```{math}
+:enumerated: false
+
+\v{v}_p[f] &= 2U_1\pd{f}{x}(\v{p}) - U_2\pd{f}{y}(\v{p}) + 3U_3\pd{f}{z}(\v{p}) \\
+    &= 2U_1(e^x\cos{y})_{|(2, 0, -1)} + U_2(e^x\sin{y})_{|(2, 0, -1)} \\
+    &= 2e^2U_1.
 ```
 
