@@ -73,7 +73,6 @@ paralleled by defining the function as a symbolic expression.
 
 ```{code-cell} python
 import os
-print(os.getcwd())
 from sage.all import *
 
 var('x, y, z, a, t')
@@ -224,23 +223,29 @@ combination of $U_1(\v{p}), U_2(\v{p}), U_3(\v{p})$ .
 
 Let's write some utilities for [plotly](https://plotly.com/python).
 I'm going to maintain a plotting library `plot_dg` in a separate
-script which you can find in the [repository]().
-We'll want functions
-to create a figure and add point markers and arrowed vectors.
+script which you can find in the [repository](https://github.com/oelarnes/math/blob/main/src/plot_dg.py).
+
+We'll want functions to create a figure and add point markers and arrowed vectors.
 I used Claude to help set up the functions. Learning plotting libraries is a pain!
 
 ```{code-cell}{python}
-# v2026-03-29
+# v3
+import numpy as np
 from plot_dg import dg_figure, add_point, add_vector
 
 p = [1, 1, 0]
-v = [-2, 1, -1]
-w = [0, 1, 3]
+v = np.array([-2, 1, -1])
+w = np.array([0, 1, 3])
 
-fig = dg_figure()
+fig = dg_figure(xlim=(-2, 6))
 
 add_point(fig, p, name="p")
-add_vector(fig, v, p, name="v_p")
+add_vector(fig, v, p, name="v_p", color="blue")
+add_vector(fig, w, p, name="w_p", color="red")
+add_vector(fig, -2*v, p, name="-2v_p", color="green")
+add_vector(fig, v + w, p, name="v_p + w_p", color="purple")
+add_vector(fig, v, p + w, color="blue", line_style="dash")
+add_vector(fig, w, p + v, color="red", line_style="dash")
 
 fig.show()
 ```

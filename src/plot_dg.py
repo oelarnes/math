@@ -6,12 +6,12 @@ def dg_figure(
     ylim=(-4, 4),
     zlim=(-4, 4),
     axis_labels=("x", "y", "z"),
-    bgcolor="darkgrey",
+    bgcolor="dimgrey",
     zerolinecolor="red",
 ) -> go.Figure:
     ax = {
         "backgroundcolor": bgcolor,
-        "gridcolor": "lightgrey",
+        "gridcolor": "darkgrey",
         "zerolinecolor": zerolinecolor,
         "showbackground": True
     }
@@ -45,9 +45,9 @@ def dg_figure(
 def add_point(
     fig: go.Figure,
     point: np.ndarray | list,
-    color: str = "black",
+    color: str = "gold",
     symbol: str = "circle",
-    size: int = 4,
+    size: int = 3,
     opacity: float = 1.0,
     name: str | None = None,
 ) -> go.Figure:
