@@ -1,5 +1,5 @@
 export BASE_URL="/math"
-jupyter-book build --html
+jupyter-book build --html --execute
 
 SITE_DIR=/var/www/html/math
 rm -rf $SITE_DIR/*

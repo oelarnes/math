@@ -5,9 +5,10 @@
 ---
 
 # Chapter 1
-## Problem Set 1.1
 
-### Problem 1
+## Exercises 1.1
+
+### Exercise 1
 
 Let $f = x^2y$ and $g = y\sin{z}$ be functions on $\R^3$. Express the following
 functions in terms of $x, y, z:$
@@ -40,7 +41,7 @@ $x, y,$ and $z$, since these may depend on other functions or variables.
 We will have to be especially careful about the application of the chain rule going
 forward, and this notation should help avoid mistakes.
 
-### Problem 2
+### Exercise 2
 
 Find the value of the function $f = x^2y - y^2z$ at each point:
 
@@ -71,6 +72,8 @@ notion of the function as an algebraic expression of functions is
 paralleled by defining the function as a symbolic expression.
 
 ```{code-cell} python
+import os
+print(os.getcwd())
 from sage.all import *
 
 var('x, y, z, a, t')
@@ -90,7 +93,7 @@ for case, args in cases.items():
     print(f"({case}): f(*{(args)}) = {f.subs(**xyz(args))}")
 ```
 
-### Problem 3
+### Exercise 3
 
 Express $\pd{f}{x}$ in terms of $x, y$ and $z$ if
 
@@ -118,7 +121,7 @@ f = sin(exp(x**2 + y**2 + z**2))
 print(f.diff(x))
 ```
 
-### Problem 4
+### Exercise 4
 
 If $g_1, g_2, g_3,$ and $h$ are real-valued functions on $\R^3$, then
 
@@ -192,9 +195,9 @@ for args in subs:
     print(h.subs(**xyz(args)).diff(x))
 ```
 
-## Problem Set 1.2
+## Exercises 1.2
 
-### Problem 1
+### Exercise 1
 
 Let $\v{v} = (-2, 1, -1)$ and $\v{w} = (0, 1, 3).$
 
@@ -217,9 +220,32 @@ combination of $U_1(\v{p}), U_2(\v{p}), U_3(\v{p})$ .
     &= \bx{-6U_1(\v{p}) + U_2(\v{p}) - 9U_3(\v{p})}.
 ```
 
-(b) *todo*
+(b)
 
-### Problem 2
+Let's write some utilities for [plotly](https://plotly.com/python).
+I'm going to maintain a plotting library `plot_dg` in a separate
+script which you can find in the [repository]().
+We'll want functions
+to create a figure and add point markers and arrowed vectors.
+I used Claude to help set up the functions. Learning plotting libraries is a pain!
+
+```{code-cell}{python}
+# v2026-03-29
+from plot_dg import dg_figure, add_point, add_vector
+
+p = [1, 1, 0]
+v = [-2, 1, -1]
+w = [0, 1, 3]
+
+fig = dg_figure()
+
+add_point(fig, p, name="p")
+add_vector(fig, v, p, name="v_p")
+
+fig.show()
+```
+
+### Exercise 2
 
 Let $V = xU_1 + yU_2$ and $W = 2x^2U_2 - U_3.$ Compute the vector $W - xV$, and find its value at the point $\v{p} = (-1, 0, 2).$
 
@@ -250,7 +276,7 @@ print(Z.display())
 print(Z.at(E((-1, 0, 2)))[:])
 ```
 
-### Problem 3
+### Exercise 3
 
 In each case, express the given vector field $V$ in the standard form $\sum v_iU_i$.
 
@@ -279,7 +305,7 @@ In each case, express the given vector field $V$ in the standard form $\sum v_iU
 
 (e) $V = \bx{-xU_1 - yU_2 -zU_3}.$
 
-### Problem 4
+### Exercise 4
 
 If $V = y^2U_1 - x^2U_3$ and $W = x^2U_1 - zU_2$, find functions $f$ and $g$ such
 that the vector field $fV + gW$ can be represented in terms of $U_2$ and $U_3$ only.
@@ -290,7 +316,7 @@ that the vector field $fV + gW$ can be represented in terms of $U_2$ and $U_3$ o
 
 We need $v_1 = fy^2 + gx^2 = 0$, so $f = x^2$ and $g = -y^2$ will suffice. $\square$
 
-### Problem 5
+### Exercise 5
 
 Let $V_1 = U_1 - xU_3$, $V_2 = U_2$, and $V_3 = xU_1 + U_3$.
 
@@ -355,7 +381,7 @@ so the vector field in terms of the new basis is
 xU_1 + yU_2 + zU_3 = \bx{\frac{x - zx}{1 + x^2}V_1 + yV_2 + \frac{x^2 + z}{1 + x^2}V_3}.
 ```
 
-## Problem Set 1.3
+## Exercises 1.3
 
 ### Exercise 1
 
@@ -381,8 +407,8 @@ Compute the derivatives in Exercise 1 using Lemma 3.2.
 :enumerated: false
 
 \v{v}_p[f] &= 2U_1\pd{f}{x}(\v{p}) - U_2\pd{f}{y}(\v{p}) + 3U_3\pd{f}{z}(\v{p}) \\
-    &= -1U_2(2yz)_{|(2, 0, -1)} + 3U_3(y^2)_{|(2, 0, -1)} \\
-    &= 0.
+    &= -U_2(2yz)_{|(2, 0, -1)} + 3U_3(y^2)_{|(2, 0, -1)} \\
+    &= \bx{0}.
 ```
 
 (b)
@@ -390,8 +416,8 @@ Compute the derivatives in Exercise 1 using Lemma 3.2.
 :enumerated: false
 
 \v{v}_p[f] &= 2U_1\pd{f}{x}(\v{p}) - U_2\pd{f}{y}(\v{p}) + 3U_3\pd{f}{z}(\v{p}) \\
-    &= -1U_2(7y^6)_{|(2, 0, -1)} \\
-    &= 0.
+    &= -U_2(7y^6)_{|(2, 0, -1)} \\
+    &= \bx{0}.
 ```
 
 (c)
@@ -400,6 +426,118 @@ Compute the derivatives in Exercise 1 using Lemma 3.2.
 
 \v{v}_p[f] &= 2U_1\pd{f}{x}(\v{p}) - U_2\pd{f}{y}(\v{p}) + 3U_3\pd{f}{z}(\v{p}) \\
     &= 2U_1(e^x\cos{y})_{|(2, 0, -1)} + U_2(e^x\sin{y})_{|(2, 0, -1)} \\
-    &= 2e^2U_1.
+    &= \bx{2e^2U_1}.
 ```
 
+### Exercise 4
+
+Prove the identity $V = \sum V[x_i]U_i$, where $x_1, x_2, x_3$ are the natural coordinate
+functions.
+
+---
+
+*Solution:*
+
+Since $V = \sum v_iU_i$, we need only prove $V[x_i] = v_i$ for $i \in \{1,2,3\}$. By Lemma 3.2 and the pointwise principle,
+
+```{math}
+:enumerated: false
+
+V[x_i] &= \sum_j v_j \pd{x_i}{x_j} \\
+    &= \sum_j v_j \delta_{ij}\\
+    &= v_i,
+
+```
+as desired. $\square$
+
+## Exercises 1.4
+
+### Exercise 2
+
+Find the unique curve such that $\alpha(0) = (1, 0, 5)$ and $\alpha'(t) = (t^2, t, e^t)$.
+
+---
+
+*Solution:*
+
+Integrate to get 
+
+```{math}
+:enumerated: false
+
+\alpha(t) = \left(\frac{t^3}{3} + C_1, \frac{t^2}{2} + C_2, e^t + C_3\right).
+```
+
+We need $C_1 = 1, C_2 = 0, \text{ and } 1 + C_3 = 5$, giving
+
+```{math}
+:enumerated: false
+
+\alpha(t) = \bx{\left(\frac{t^3}{3} + 1, \frac{t^2}{2}, e^t + 4\right)}.
+```
+
+$\square$.
+
+### Exercise 4
+
+Reparametrize the curve $\alpha$ in Example 4.2(4) using $h(s) = \log{s}$ on
+$J: s > 0.$ Check the equation in Lemma 4.5 in this case by calculating each
+side separately.
+
+---
+
+*Solution:*
+
+The curve in question is 
+
+```{math}
+:enumerated: false
+
+\alpha(t) = (e^t, e^{-t}, \sqrt{2}t).
+```
+
+The reparametrization is given by 
+
+```{math}
+:enumerated: false
+
+\beta(s) = \alpha(h(s)) &= (e^{\log s}, e^{-\log s}, \sqrt{2}\log s) \\
+    &= (s, \frac{1}{s}, \sqrt{2}\log s).
+```
+
+Lemma 4.5 gives 
+
+```{math}
+:enumerated: false
+
+\beta'(s) = (dh/ds)(s)\alpha'(h(s)),
+```
+
+so calculate
+
+```{math}
+:enumerated: false
+
+\frac{dh}{ds} = \frac{1}{s},\\
+\alpha'(t) = (e^t, -e^t, \sqrt{2}),\\
+```
+
+so
+
+```{math}
+:enumerated: false
+
+\frac{dh}{ds}(s)\alpha'(h(s)) &= \frac{1}{s}(s, -\frac{1}{s}, \sqrt{2}) \\
+    &= (1, -\frac{1}{s^2}, \frac{\sqrt{2}}{s}),
+```
+
+which is also the directly calculated
+
+```{math}
+:enumerated: false
+
+
+\beta'(s) = (1, -\frac{1}{s^2}, \frac{\sqrt{2}}{s}),\\
+```
+
+as desired. $\square$
