@@ -1,7 +1,0 @@
-plot_dg.py
-pyproject.toml
-plot_dg.egg-info/PKG-INFO
-plot_dg.egg-info/SOURCES.txt
-plot_dg.egg-info/dependency_links.txt
-plot_dg.egg-info/requires.txt
-plot_dg.egg-info/top_level.txt
