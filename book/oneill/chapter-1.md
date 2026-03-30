@@ -546,3 +546,9 @@ which is also the directly calculated
 ```
 
 as desired. $\square$
+
+### Exercise 8
+
+
+```{code-cell}{python}
+```

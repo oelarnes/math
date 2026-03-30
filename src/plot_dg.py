@@ -1,3 +1,5 @@
+# Plotting library for differential geometry. Assisted by Claude
+
 import numpy as np
 import plotly.graph_objects as go
 
@@ -8,6 +10,7 @@ def dg_figure(
     axis_labels=("x", "y", "z"),
     bgcolor="dimgrey",
     zerolinecolor="red",
+
 ) -> go.Figure:
     ax = {
         "backgroundcolor": bgcolor,
