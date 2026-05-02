@@ -137,7 +137,7 @@ If $\v{e}_1, \v{e}_2, \v{e}_3$ is a frame, show that
 \v{e}_1 \cdot \v{e}_2 \times \v{e}_3 = \pm 1.
 ```
 
-Deduce that any orthogonal matrix has determinant 1.
+Deduce that any orthogonal matrix has determinant $\pm 1$.
 
 ---
 
@@ -177,7 +177,7 @@ as desired. $\square$
 
 ### Exercise 10
 
-In each case, let $S$ be the set of all points $\v{p}$ that satisfy the given condition. Describe $S$, and decide whether it is *open$.
+In each case, let $S$ be the set of all points $\v{p}$ that satisfy the given condition. Describe $S$, and decide whether it is *open*.
 
 (a) $p_1^2 + p_2^2 + p_3^2 = 1$.
 
@@ -194,7 +194,7 @@ In each case, let $S$ be the set of all points $\v{p}$ that satisfy the given co
 (a) This describes the unit sphere, since the Euclidean distance of $\v{p}$ from the origin is fixed at one. For $\v{p}$ and given $\epsilon$, the point $(1 + \epsilon)\v{p}$
 has distance $1 + \epsilon$ from the origin and is not in $S$, but is found arbitrarily close to $\v{p}$, so $S$ is not open.
 
-(b) $p_3 = 0$ defines a plane, so $p_3 \neq 0$ is the complement of that plane, the two open half-planes above and below. They are open because for $\v{p} = (p_1, p_2, p3)$ with
+(b) $p_3 = 0$ defines a plane, so $p_3 \neq 0$ is the complement of that plane, the two open half-spaces above and below. They are open because for $\v{p} = (p_1, p_2, p_3)$ with
 $p_3 \neq 0$, if $\epsilon = p_3 / 2$, for $\v{z} \in \mathcal{N}_\epsilon, z_3 > p_3 / 2$ and $\v{z} \in S$. 
 
 (c) $p_1 = p_2$ is a plane consisting of points $(u, u, v)$ for parameters $u, v$. Then as in (b), after intersecting with $p_2 \neq p_3$, this plane is divided into two open half-planes about the line $(t, t, t)$. However,
@@ -375,9 +375,5 @@ $$\beta(t) = \alpha(t) + p \qquad \text{for all } t \in I.$$
 
 *Solution:*
 
-For each coordinate $i$, the function $\beta_i - \alpha_i$ has derivative $\beta_i' - \alpha_i' = 0$ on $I$. By the fundamental theorem of calculus, for any fixed $t_0 \in I$,
-
-$$\beta_i(t) - \alpha_i(t) = \beta_i(t_0) - \alpha_i(t_0) + \int_{t_0}^t 0 = \beta_i(t_0) - \alpha_i(t_0),$$
-
-so $\beta_i - \alpha_i$ is constant. Setting $p_i = \beta_i(t_0) - \alpha_i(t_0)$ and $p = (p_1, p_2, p_3)$ gives $\beta(t) = \alpha(t) + p$ for all $t \in I$. $\square$
+Apply the fundamental theorem of calculus to each coordinate function. $\square$
 
