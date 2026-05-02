@@ -371,3 +371,13 @@ $\alpha$ and $\beta$ are **parallel**: there exists a fixed point $p \in \R^3$ s
 
 $$\beta(t) = \alpha(t) + p \qquad \text{for all } t \in I.$$
 
+---
+
+*Solution:*
+
+For each coordinate $i$, the function $\beta_i - \alpha_i$ has derivative $\beta_i' - \alpha_i' = 0$ on $I$. By the fundamental theorem of calculus, for any fixed $t_0 \in I$,
+
+$$\beta_i(t) - \alpha_i(t) = \beta_i(t_0) - \alpha_i(t_0) + \int_{t_0}^t 0 = \beta_i(t_0) - \alpha_i(t_0),$$
+
+so $\beta_i - \alpha_i$ is constant. Setting $p_i = \beta_i(t_0) - \alpha_i(t_0)$ and $p = (p_1, p_2, p_3)$ gives $\beta(t) = \alpha(t) + p$ for all $t \in I$. $\square$
+
