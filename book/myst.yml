@@ -4,12 +4,12 @@ project:
   id: cb1709c7-1695-4f45-a8de-2444f1357557
   title: MagicFlea's Math Notes
   description: Writing up some math for fun
-  keywords: 
+  keywords:
     - math
     - differential-geometry
     - problem-sets
     - solutions
-  authors: 
+  authors:
     - MagicFlea
   github: oelarnes/math
   math:
@@ -18,6 +18,13 @@ project:
     '\pd': '\frac{\partial #1}{\partial #2}'
     '\spd': '\frac{\partial^2 #1}{\partial #2 \partial #3}'
     '\bx': '\boxed'
+  toc:
+    - file: intro.md
+    - title: "O'Neill: Elementary Differential Geometry"
+      children:
+        - file: oneill/chapter-1.md
+        - file: oneill/chapter-2.md
+
 site:
   template: book-theme
   # options:

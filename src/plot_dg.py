@@ -10,7 +10,6 @@ def dg_figure(
     axis_labels=("x", "y", "z"),
     bgcolor="dimgrey",
     zerolinecolor="red",
-
 ) -> go.Figure:
     ax = {
         "backgroundcolor": bgcolor,
@@ -107,3 +106,36 @@ def add_vector(
     ))
 
     return fig
+
+def fig_2d(
+    xlim = [-1, 1],
+    ylim = [-1, 1],
+    axis_labels=("x", "y"),
+    bgcolor="dimgrey",
+    zerolinecolor="red",
+):
+    ax = {
+        "backgroundcolor": bgcolor,
+        "gridcolor": "darkgrey",
+        "zerolinecolor": zerolinecolor,
+        "showbackground": True,
+    }
+
+    fig = go.Figure()
+    fig.update_layout(
+        template="plotly_dark",
+        scene={
+            "xaxis": {
+                **ax, 
+                "title": axis_labels[0],
+                "range": list(xlim)
+            },
+            "yaxis": {
+                **ax,
+                "title": axis_labels[1],
+                "range": list(ylim),
+            },
+        },
+    )
+    return fig
+
