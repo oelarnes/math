@@ -8,3 +8,4 @@ __pycache__
 
 # jupyter
 .ipynb_checkpoints
+scratch.*
