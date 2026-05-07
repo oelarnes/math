@@ -1,3 +1,10 @@
+---
+kernelspec:
+  name: python3
+  language: python
+  display_name: Python 3
+---
+
 # Chapter 2
 
 ## Exercises 2.1
@@ -349,6 +356,83 @@ Y(t) &= \alpha(t + \pi) - \alpha(t) \\
      &= \bx{-2\cos t\, U_1 - 2\sin t\, U_2 + \pi\, U_3}.
 ```
 
+*Notes:*
+
+```{code-cell} python3
+# Exercise 2.2.6 — vector fields on the helix
+# Written with Claude
+import numpy as np
+import plotly.graph_objects as go
+from plot_dg import (
+    dg_figure, make_curve_trace, make_point_trace,
+    make_vector_traces, make_frame_traces,
+    apply_animation_layout, case_visibility_buttons, traces_to_frame_data,
+)
+
+# --- problem definitions ---
+def alpha(t):    return np.array([np.cos(t), np.sin(t), t])
+def alpha_p(t):  return np.array([-np.sin(t), np.cos(t), 1.0])
+def alpha_pp(t): return np.array([-np.cos(t), -np.sin(t), 0.0])
+
+sq2 = np.sqrt(2) / 2
+Y_FNS = {
+    'a': lambda t: np.array([-np.cos(t), -np.sin(t), -t]),
+    'b': lambda t: np.array([np.cos(t) - np.sin(t), np.cos(t) + np.sin(t), 1.0]),
+    'c': lambda t: np.array([sq2*np.sin(t), -sq2*np.cos(t), sq2]),
+    'd': lambda t: np.array([-2*np.cos(t), -2*np.sin(t), np.pi]),
+}
+PARTS = list(Y_FNS)
+PART_COLOR = {'a': 'gold', 'b': 'darkorange', 'c': 'plum', 'd': 'cyan'}
+USES_FRAME = {'a': False, 'b': True, 'c': True, 'd': False}
+
+# --- traces ---
+n_frames = 48
+t_vals = np.linspace(0, 2*np.pi, n_frames, endpoint=False)
+s_dense = np.linspace(0, 2*np.pi, 200)
+helix_pts = np.column_stack([np.cos(s_dense), np.sin(s_dense), s_dense])
+
+# Trace layout: helix, α(t), [coord frame at origin × 3], α', α'', [Y_p × 4]
+def build_traces(t):
+    a = alpha(t)
+    out = [
+        make_curve_trace(helix_pts, color='steelblue', width=4),
+        make_point_trace(a, color='crimson', size=5),
+    ]
+    out += make_frame_traces(base=[0, 0, 0], scale=0.6)
+    out += make_vector_traces(alpha_p(t),  base=a, color='lightskyblue', cone_scale=0.12, line_width=3)
+    out += make_vector_traces(alpha_pp(t), base=a, color='palegreen',    cone_scale=0.12, line_width=3)
+    for p in PARTS:
+        out += make_vector_traces(Y_FNS[p](t), base=a, color=PART_COLOR[p], cone_scale=0.18)
+    return out
+
+def vis_pattern(part):
+    pat = [True, True] + [True] * 6      # helix, point, coordinate frame
+    pat += [USES_FRAME[part]] * 4         # α', α''
+    for p in PARTS:
+        pat += [p == part] * 2            # Y_p
+    return pat
+
+# --- assemble figure ---
+fig = dg_figure(xlim=(-3, 3), ylim=(-3, 3), zlim=(-2, 8))
+initial = build_traces(t_vals[0])
+for tr, vis in zip(initial, vis_pattern('a')):
+    tr.update(visible=vis)
+for tr in initial:
+    fig.add_trace(tr)
+
+fig.frames = [
+    go.Frame(name=str(i), data=traces_to_frame_data(build_traces(t)))
+    for i, t in enumerate(t_vals)
+]
+
+apply_animation_layout(
+    fig,
+    case_buttons=case_visibility_buttons(PARTS, vis_pattern),
+    n_frames=n_frames,
+)
+fig.show()
+```
+
 ### Exercise 8
 
 Let $Y$ be a vector field on a curve $\alpha$. If $\alpha(h)$ is a
@@ -376,4 +460,96 @@ $$\beta(t) = \alpha(t) + p \qquad \text{for all } t \in I.$$
 *Solution:*
 
 Apply the fundamental theorem of calculus to each coordinate function. $\square$
+
+## Exercises 2.3
+
+### Exercise 2
+
+Consider the curve
+
+```{math}
+:enumerated: false
+
+\beta(s) = \left(\frac{(1+s)^{3/2}}{3},\; \frac{(1-s)^{3/2}}{3},\; \frac{s}{\sqrt{2}}\right)
+```
+
+defined on $I\colon -1 < s < 1$. Show that $\beta$ has unit speed, and compute its Frenet apparatus.
+
+---
+
+### Exercise 4
+
+Prove that
+
+```{math}
+:enumerated: false
+
+T &= N \times B = -B \times N, \\
+N &= B \times T = -T \times B, \\
+B &= T \times N = -N \times T.
+```
+
+(A formal proof uses properties of the cross product established in the Exercises of Section 1—but one can recall these formulas by using the right-hand rule given at the end of that section.)
+
+---
+
+### Exercise 6
+
+A unit-speed parametrization of a circle may be written
+
+```{math}
+:enumerated: false
+
+\gamma(s) = \v{c} + r\cos\frac{s}{r}\,\v{e}_1 + r\sin\frac{s}{r}\,\v{e}_2,
+```
+
+where $\v{e}_i \cdot \v{e}_j = \delta_{ij}$.
+
+If $\beta$ is a unit-speed curve with $\kappa(0) > 0$, prove that there is one and only one circle $\gamma$ that approximates $\beta$ near $\beta(0)$ in the sense that
+
+$$\gamma(0) = \beta(0), \quad \gamma'(0) = \beta'(0), \quad \text{and} \quad \gamma''(0) = \beta''(0).$$
+
+Show that $\gamma$ lies in the osculating plane of $\beta$ at $\beta(0)$ and find its center $\v{c}$ and radius $r$. The circle $\gamma$ is called the **osculating circle** and $\v{c}$ the **center of curvature** of $\beta$ at $\beta(0)$. (The same results hold when $0$ is replaced by any number $s$.)
+
+---
+
+### Exercise 8
+
+*Curves in the plane.* For a unit-speed curve $\beta(s) = (x(s), y(s))$ in $\R^2$, the unit tangent is $T = \beta' = (x', y')$ as usual, but the unit normal $N$ is defined by rotating $T$ through $+90°$, so $N = (-y', x')$. Thus $T'$ and $N$ are collinear, and the **plane curvature** $\tilde{\kappa}$ of $\beta$ is defined by the Frenet equation $T' = \tilde{\kappa}\,N$.
+
+(a) Prove that $\tilde{\kappa} = T' \cdot N$ and $N' = -\tilde{\kappa}\,T$.
+
+(b) The *slope angle* $\varphi(s)$ of $\beta$ is the differentiable function such that
+
+$$T = (\cos\varphi,\, \sin\varphi) = \cos\varphi\, U_1 + \sin\varphi\, U_2.$$
+
+(The existence of $\varphi$ derives from Ex. 12 of Sec. 1.) Show that $\tilde{\kappa} = \varphi'$.
+
+(c) Find the curvature $\tilde{\kappa}$ of the following plane curves.
+
+(i) $(r\cos(s/r),\, r\sin(s/r))$, counterclockwise circle.
+
+(ii) $(r\cos(-s/r),\, r\sin(-s/r))$, clockwise circle.
+
+(d) Show that if $\tilde{\kappa}$ does not change sign, then $|\tilde{\kappa}|$ is the usual $\R^3$ curvature $\kappa$. (For such comparisons we can always regard $\R^2$ as, say, the $xy$ plane in $\R^3$.)
+
+---
+
+### Exercise 10
+
+*Spherical curves.* Let $\alpha$ be a unit-speed curve with $\kappa > 0$, $\tau \neq 0$.
+
+(a) If $\alpha$ lies on a sphere of center $\v{c}$ and radius $r$, show that
+
+```{math}
+:enumerated: false
+
+\alpha - \v{c} = -\rho\, N - \rho'\sigma\, B,
+```
+
+where $\rho = 1/\kappa$ and $\sigma = 1/\tau$. Thus $r^2 = \rho^2 + (\rho'\sigma)^2$.
+
+(b) Conversely, if $\rho^2 + (\rho'\sigma)^2$ has constant value $r^2$ and $\rho' \neq 0$, show that $\alpha$ lies on a sphere of radius $r$.
+
+(*Hint:* For (b), show that the "center curve" $\gamma = \alpha + \rho\, N + \rho'\sigma\, B$—suggested by (a)—is constant.)
 
