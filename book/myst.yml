@@ -18,6 +18,8 @@ project:
     '\pd': '\frac{\partial #1}{\partial #2}'
     '\spd': '\frac{\partial^2 #1}{\partial #2 \partial #3}'
     '\bx': '\boxed'
+    '\th': '\vartheta'
+    '\ph': '\varphi'
   toc:
     - file: intro.md
     - title: "O'Neill: Elementary Differential Geometry"
