@@ -1,0 +1,18 @@
+# Recreate with:  conda env create -f environment.yml && conda activate sage
+# Pinned to the last known-working versions (Sept 2026). Loosen pins if they fail to solve.
+name: sage
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - sage=10.7
+  - jupyter-book=2.1
+  - plotly=6.6
+  - manim=0.20
+  - pandas=3.0
+  - pip
+  - pip:
+      - -e ./src  # plot_dg
+      # Also installed at one point for side explorations; uncomment if needed:
+      # - astropy
+      # - astroquery

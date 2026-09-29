@@ -5,9 +5,14 @@ To get started, clone the repository into a loose folder. If you're on Windows, 
 You'll need an active `conda` environment. I tried quite a bit to install Sage without it, and did not get it to work.
 If something below isn't working make sure you have the right environment active.
 
-Install the requirements `jupyter-book`, `sage`, `plotly` and whatever else I forgot.
+From the project directory, create and activate the environment (this also does an editable install of the `plot_dg` module from `src`):
 
-You'll also need an editable installation of the `plot_dg` module. Use `pip install -e src` from the project directory.
+```
+conda env create -f environment.yml
+conda activate sage
+```
+
+Install conda with [Miniforge](https://github.com/conda-forge/miniforge), which defaults to the conda-forge channel.
 
 To launch the book locally type `jupyter book start --execute` from the `book` directory. You'll get a web server and you should be able
 to start editing text. You can edit text with the web page open side-by-side and you should see rendering as you save.
