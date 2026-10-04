@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Skill Rating Update</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body, {delimiters: [{left: '$$', right: '$$', display: true}, {left: '\\(', right: '\\)', display: false}]});"></script>
+<style>
+  :root {
+    --fg: #1d2330; --muted: #5b6475; --bg: #ffffff; --panel: #f4f6f9;
+    --rule: #dde2ea; --accent: #2f6fb3;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --fg: #e4e8ef; --muted: #9aa4b5; --bg: #14171d; --panel: #1d222b;
+            --rule: #2c333f; --accent: #7fb2ea; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg);
+         font: 17px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 32px 16px 64px; }
+  h1 { font-size: 1.7rem; line-height: 1.25; margin: 0 0 6px; }
+  .byline { color: var(--muted); font-size: 0.95rem; margin-bottom: 24px; }
+  .abstract { background: var(--panel); border-left: 3px solid var(--accent);
+              padding: 12px 16px; border-radius: 4px; margin: 0 0 8px; }
+  .abstract p:last-child { margin: 0; }
+  h2 { font-size: 1.25rem; margin: 40px 0 10px; padding-top: 16px; border-top: 1px solid var(--rule); }
+  h3 { font-size: 1.05rem; margin: 24px 0 6px; }
+  p, li { margin: 0 0 10px; }
+  ul, ol { padding-left: 22px; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.88em;
+         background: var(--panel); padding: 1px 5px; border-radius: 4px; }
+  .katex-display { overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
+  .scroll { overflow-x: auto; margin: 12px 0 18px; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.93rem; }
+  th, td { text-align: left; vertical-align: top; padding: 6px 10px; border-bottom: 1px solid var(--rule); }
+  th { color: var(--muted); font-weight: 600; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.03em; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .note { color: var(--muted); font-size: 0.92rem; }
+  .refs li { font-size: 0.93rem; }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+<main>
+
+<h1>One skill rating update</h1>
+<div class="byline">Technical note for 17Lands developers · October 2026 ·
+companion to the <a href="https://magic-flea.com/dcqqimttw0/">skill groups proposal</a></div>
+
+<div class="abstract">
+<p>This note writes out how the skill-group rating model updates one player's rating from one
+set-format of results, with every model parameter held fixed. Skill is the log-odds of winning a
+game against a standardized general Premier Draft opponent played at platinum rank, relative to a
+per-set baseline. The update is a scalar Kalman filter with a
+Laplace (Gaussian) approximation to the binomial game likelihood, as in Glicko. It also
+splits the player's surprise among four sources: a change in core skill, a set-specific
+deviation, deck quality, and game luck. Section 7 works through a real update: one player's
+<i>Outlaws of Thunder Junction</i> Premier Draft record.</p>
+</div>
+
+<h2>1. Quantities</h2>
+
+<p>Skill is the log-odds of winning a game against a standardized general Premier Draft
+opponent played at platinum rank, relative to a per-set baseline. Log-odds and win rate convert
+through the logit function and its inverse:</p>
+$$
+\operatorname{logit}(p) = \log\frac{p}{1-p}, \qquad
+\operatorname{logit}^{-1}(x) = \frac{1}{1 + e^{-x}} .
+$$
+
+<div class="scroll"><table>
+<tr><th>Log-odds</th><td class="num">−0.5</td><td class="num">−0.25</td><td class="num">0</td><td class="num">+0.25</td><td class="num">+0.4</td><td class="num">+0.5</td><td class="num">+0.6</td><td class="num">+0.75</td><td class="num">+1</td></tr>
+<tr><th>Win rate</th><td class="num">37.8%</td><td class="num">43.8%</td><td class="num">50.0%</td><td class="num">56.2%</td><td class="num">59.9%</td><td class="num">62.2%</td><td class="num">64.6%</td><td class="num">67.9%</td><td class="num">73.1%</td></tr>
+</table></div>
+<p class="note">Near a 60% win rate, a change of 0.1 in log-odds is about 2.4 percentage points.</p>
+
+<p>A <b>set-format</b> is one expansion × event type: the unit with one row in
+<code>user_format_gameplay_summaries</code>. Indexing the player's set-formats in time order by
+\(t\):</p>
+
+<div class="scroll"><table>
+<tr><th>Symbol</th><th>Meaning</th><th>Kind</th></tr>
+<tr><td>\(s_t\)</td><td>core skill during set-format \(t\); persists between set-formats</td><td>latent, per player</td></tr>
+<tr><td>\(m_t,\ P_t\)</td><td>rating mean and variance: our belief \(s_t \sim \mathcal N(m_t, P_t)\)</td><td>state, per player</td></tr>
+<tr><td>\(a_t\)</td><td>set deviation: how far off core the player is in this set-format; fresh each time</td><td>latent, per player</td></tr>
+<tr><td>\(e_{t,d}\)</td><td>deck quality of draft \(d\) relative to the player's usual</td><td>latent, per draft</td></tr>
+<tr><td>\(\mu_0,\ \sigma\)</td><td>population mean and spread of skill: a new player's prior, and the cap on \(P\)</td><td>parameter</td></tr>
+<tr><td>\(c\)</td><td>drift: s.d. of core-skill change per year</td><td>parameter</td></tr>
+<tr><td>\(\sigma_a\)</td><td>s.d. of the set deviation</td><td>parameter</td></tr>
+<tr><td>\(\tau\)</td><td>s.d. of deck quality between drafts</td><td>parameter</td></tr>
+<tr><td>\(o_r = b_t + \beta_r\)</td><td>opponent benchmark for a game at rank \(r\) in set-format \(t\): set baseline \(b_t\) (centres the set-format's 50+-game players) plus rank offset \(\beta_r\), with \(\beta_{\text{platinum}} = 0\)</td><td>parameter</td></tr>
+</table></div>
+
+<p>The data for set-format \(t\) are games \(n_r\) and wins \(w_r\) in each rank bucket \(r\),
+and the number of drafts \(D\). In 17Lands summaries the rank bucket is the player's own rank
+at the time of the game: opponent rank is no longer in the logs, and the summary generator falls
+back to the player's rank.</p>
+
+<h2>2. Model</h2>
+
+<p>A game in draft \(d\) of set-format \(t\), played at rank \(r\), is won with probability</p>
+$$
+\Pr(\text{win}) = \operatorname{logit}^{-1}\!\big(s_t + a_t + e_{t,d} - o_r\big),
+\qquad o_r = b_t + \beta_r ,
+$$
+<p>with independent \(a_t \sim \mathcal N(0, \sigma_a^2)\) and \(e_{t,d} \sim \mathcal N(0, \tau^2)\).
+Core skill follows a random walk in calendar time, \(s_{t} = s_{t-1} + \eta_t\) with
+\(\eta_t \sim \mathcal N(0,\, c^2 \Delta_t)\), where \(\Delta_t\) is the time between the two
+set-formats in years. Each set-format is dated at the midpoint of its expansion's original
+release window, from its release until the next release. Events from later reruns count toward
+the original set-format. A player seen for the first time starts at
+\(s \sim \mathcal N(\mu_0, \sigma^2)\).</p>
+
+<p>The update needs one simplification. The deck terms enter at the level of the whole
+set-format, as their average \(\bar e_t = \frac1D \sum_d e_{t,d} \sim \mathcal N(0, \tau^2/D)\).
+Summary rows record total games and wins rather than each draft's record, so this is the natural
+granularity.</p>
+
+<h2>3. Step 1: carry the rating forward</h2>
+
+<p>Between set-formats the rating mean stays where it is, and its variance grows by the drift
+accumulated over the gap, up to a cap:</p>
+$$
+m_t^- = m_{t-1}, \qquad
+P_t^- = \min\!\big(P_{t-1} + c^2 \Delta_t,\ \sigma^2\big).
+$$
+<p>This is the Kalman prediction step for a random walk (Glickman 1999 does the same for Glicko's
+rating deviation). The cap is a rule about our belief, not part of the generative model. It
+stops a long-absent player's uncertainty from exceeding a newcomer's. Their old rating is kept,
+but it carries no more confidence than the population prior.</p>
+
+<h2>4. Step 2: turn the record into a Gaussian observation</h2>
+
+<p>Fix the effective skill \(x\). Each game at rank \(r\) is won independently with probability
+\(p_r = \operatorname{logit}^{-1}(x - o_r)\), so the log-likelihood of the record is built up
+in four steps:</p>
+$$
+\begin{aligned}
+\Pr[\,w_r \text{ wins in } n_r \text{ games}\,] &= \binom{n_r}{w_r}\, p_r^{\,w_r} (1 - p_r)^{\,n_r - w_r} \\
+L(x) &= \prod_r \binom{n_r}{w_r}\, p_r^{\,w_r} (1 - p_r)^{\,n_r - w_r} \\
+\ell(x) = \log L(x) &= \sum_r \Big[ w_r \log p_r + (n_r - w_r) \log (1 - p_r) \Big] + \text{const} \\
+&= \sum_r \Big[ w_r \log \operatorname{logit}^{-1}(x - o_r) + (n_r - w_r) \log \operatorname{logit}^{-1}(o_r - x) \Big] + \text{const}
+\end{aligned}
+$$
+<ol>
+<li>Within one rank bucket the wins are binomial.</li>
+<li>Buckets are independent given \(x\), so the likelihood is the product over buckets.</li>
+<li>Taking logs turns the product into a sum. The binomial coefficients don't involve \(x\), so
+they fold into a constant.</li>
+<li>Substitute \(p_r\) and use \(1 - \operatorname{logit}^{-1}(z) = \operatorname{logit}^{-1}(-z)\).</li>
+</ol>
+<p>The last line is the log-likelihood of a logistic regression with one coefficient, \(x\),
+and a fixed offset \(o_r\) per bucket. Premier Draft's stopping rule (7 wins or 3 losses) changes
+only the constant. The rule depends on results alone, so any particular sequence of games still
+has probability equal to a product of \(p_r\) and \(1 - p_r\) terms (the likelihood
+principle).</p>
+
+<p>A second-order expansion around a point \(\hat x\), with score and information</p>
+$$
+U(\hat x) = \sum_r \big(w_r - n_r p_r\big), \qquad
+I(\hat x) = \sum_r n_r p_r (1 - p_r),
+$$
+<p>with \(p_r\) evaluated at \(\hat x\), gives \(\ell(x) \approx \text{const} - \tfrac12 I\,(x - y)^2\). That is the likelihood of a
+Gaussian <b>pseudo-observation</b></p>
+$$
+y = \hat x + \frac{U(\hat x)}{I(\hat x)}, \qquad \operatorname{Var}(\varepsilon) = \frac{1}{I(\hat x)} .
+$$
+<p>This is a Laplace approximation, the device behind Glicko's update and Fahrmeir's (1992)
+extended Kalman filter for dynamic generalized linear models. The record is evidence about
+effective skill \(x = s_t + a_t + \bar e_t\), not core skill alone. As an observation of \(s_t\):</p>
+$$
+y = s_t + a_t + \bar e_t + \varepsilon, \qquad
+R = \underbrace{\frac{1}{I}}_{\text{luck}} + \underbrace{\frac{\tau^2}{D}}_{\text{deck}} + \underbrace{\sigma_a^2}_{\text{set}} .
+$$
+
+<h2>5. Step 3: the Kalman update</h2>
+
+<p>With prior \(s_t \sim \mathcal N(m_t^-, P_t^-)\) and the observation above, Gaussian
+conditioning gives the posterior:</p>
+$$
+S = P_t^- + R, \qquad K = \frac{P_t^-}{S}, \qquad
+m_t = m_t^- + K\,(y - m_t^-), \qquad P_t = (1 - K)\,P_t^- .
+$$
+<p>The expansion point matters when the record is far from the prior, so the code relinearizes
+at the new mean and repeats, three passes, always from the same prior. This is the iterated
+extended Kalman filter, which Bell and Cathey (1993) show is Gauss–Newton on the posterior
+mode. It usually settles in two passes.</p>
+
+<p>\(K\) is the share of the surprise \(y - m_t^-\) that moves the rating. Early in a player's
+history \(P_t^-\) dominates \(S\), so the rating moves most of the way to the new result. For an
+established player \(P_t^-\) has shrunk below \(\sigma_a^2\), and most of a surprise is read as
+"this set", not "this player changed". Drift sets how low \(P\) can go. An active player's
+\(P\) settles where each set's reduction balances the \(c^2\Delta\) added between sets, so drift
+sets how far back the rating effectively remembers.</p>
+
+<h2>6. Step 4: attributing the surprise</h2>
+
+<p>Given the prior, the four terms of \(y - m_t^- = (s_t - m_t^-) + a_t + \bar e_t + \varepsilon\) are
+independent zero-mean Gaussians. Each has covariance with \(y\) equal to its own variance, so
+conditioning on \(y\) splits the surprise in proportion to the variances:</p>
+$$
+\mathbb E[\,\text{term} \mid y\,] = \frac{\operatorname{Var}(\text{term})}{S}\,(y - m_t^-),
+\qquad
+\frac{P_t^-}{S} + \frac{\sigma_a^2}{S} + \frac{\tau^2/D}{S} + \frac{1/I}{S} = 1 .
+$$
+<p>The core share is \(K\). The set share gives the estimate of this set-format's deviation:</p>
+$$
+\hat a_t = \frac{\sigma_a^2}{S}\,(y - m_t^-), \qquad
+\operatorname{Var}(a_t \mid y) = \sigma_a^2 - \frac{\sigma_a^4}{S} .
+$$
+<p>Only the core part carries forward. The set, deck and luck parts are written off when the
+next set-format starts.</p>
+
+<h3>Likelihood contribution</h3>
+<p>Fitting the parameters uses each set-format's marginal likelihood, the binomial record
+integrated over \(x \sim \mathcal N(m_t^-,\ P_t^- + \sigma_a^2 + \tau^2/D)\). The code computes it
+with adaptive Gauss–Hermite quadrature, 12 nodes centred on the posterior mode (Liu and Pierce
+1994). The Gaussian approximation above is used only to move the state. Using it in the
+likelihood as well understated the population spread by about 18% in simulation.</p>
+
+<h2>7. Worked example: one player's OTJ Premier Draft</h2>
+
+<p>Data from Limited Level-Ups opt-in event records (player <code>magicflea</code>). Parameters
+held fixed:</p>
+<div class="scroll"><table>
+<tr><th>Parameter</th><th class="num">Value</th><th>Source</th></tr>
+<tr><td>\(\sigma\), \(\mu_0\)</td><td class="num">0.50, 0</td><td>assumed</td></tr>
+<tr><td>\(\tau\)</td><td class="num">0.35</td><td>assumed</td></tr>
+<tr><td>\(c\)</td><td class="num">0.05 / year</td><td>round value; the five-player fit gives 0.06 [0, 0.10]</td></tr>
+<tr><td>\(\sigma_a\)</td><td class="num">0.10</td><td>round value; the five-player fit gives 0.06–0.10, depending on whether cube events are included</td></tr>
+<tr><td>\(\beta_r\)</td><td class="num">see below</td><td>pooled rank fit, five LLU players; platinum = 0</td></tr>
+<tr><td>\(b_t\)</td><td class="num">0</td><td>held at zero (five players can't set a baseline)</td></tr>
+</table></div>
+
+<h3>Step 1: carry forward</h3>
+<p>The previous set-format, <i>Murders at Karlov Manor</i>, ended at \(m = 0.4755\),
+\(P = 0.01376\) (s.d. 0.117). OTJ's release window is centred \(\Delta = 0.172\) years
+later:</p>
+$$
+m^- = 0.4755, \qquad P^- = 0.01376 + 0.05^2 \times 0.172 = 0.01376 + 0.00043 = 0.01419 \quad (\text{s.d. } 0.119).
+$$
+<p>A two-month gap adds very little: drift matters over years, not weeks.</p>
+
+<h3>Step 2: the record</h3>
+<div class="scroll"><table>
+<tr><th>Rank bucket</th><th class="num">Record</th><th class="num">\(\beta_r\)</th></tr>
+<tr><td>Silver</td><td class="num">28–6</td><td class="num">−0.288</td></tr>
+<tr><td>Gold</td><td class="num">5–6</td><td class="num">−0.029</td></tr>
+<tr><td>Platinum</td><td class="num">166–86</td><td class="num">0.000</td></tr>
+<tr><td>Diamond</td><td class="num">44–21</td><td class="num">+0.057</td></tr>
+<tr><td><b>Total</b></td><td class="num"><b>243–119</b> in 49 drafts</td><td class="num"></td></tr>
+</table></div>
+<p>The raw win rate is 243/362 = 67.1%, or \(\operatorname{logit}(243/362) = 0.714\)
+in log-odds, before any rank adjustment. Relinearizing from the prior mean:</p>
+<div class="scroll"><table>
+<tr><th>Pass</th><th class="num">\(\hat x\)</th><th class="num">\(U\)</th><th class="num">\(I\)</th><th class="num">\(y\)</th><th class="num">\(R\)</th><th class="num">\(K\)</th><th class="num">\(m\)</th></tr>
+<tr><td>1</td><td class="num">0.4755</td><td class="num">18.346</td><td class="num">85.083</td><td class="num">0.6912</td><td class="num">0.02425</td><td class="num">0.3691</td><td class="num">0.5551</td></tr>
+<tr><td>2</td><td class="num">0.5551</td><td class="num">11.642</td><td class="num">83.350</td><td class="num">0.6948</td><td class="num">0.02450</td><td class="num">0.3668</td><td class="num">0.5560</td></tr>
+<tr><td>3</td><td class="num">0.5560</td><td class="num">11.573</td><td class="num">83.330</td><td class="num">0.6948</td><td class="num">0.02450</td><td class="num">0.3668</td><td class="num">0.5560</td></tr>
+</table></div>
+<p>At convergence the observation noise is</p>
+$$
+R = \underbrace{0.01200}_{1/I} + \underbrace{0.00250}_{0.35^2/49} + \underbrace{0.01000}_{0.10^2} = 0.02450 .
+$$
+<p>Luck and set deviation contribute about equally. With 49 drafts, deck variance is small.</p>
+
+<h3>Step 3: update</h3>
+$$
+S = 0.01419 + 0.02450 = 0.03869, \qquad K = \frac{0.01419}{0.03869} = 0.367,
+$$
+$$
+m = 0.4755 + 0.367 \times (0.6948 - 0.4755) = 0.5560, \qquad
+P = (1 - 0.367) \times 0.01419 = 0.00899 \quad (\text{s.d. } 0.095).
+$$
+<p>The rating moves from \(\operatorname{logit}^{-1}(0.4755) = 61.7\%\) to
+\(\operatorname{logit}^{-1}(0.5560) = 63.6\%\) expected win rate against platinum-strength
+opponents.</p>
+
+<h3>Step 4: attribution</h3>
+<p>The surprise is \(y - m^- = 0.6948 - 0.4755 = +0.219\):</p>
+<div class="scroll"><table>
+<tr><th>Source</th><th class="num">Variance</th><th class="num">Share</th><th class="num">Part of surprise</th></tr>
+<tr><td>Core skill (moves the rating)</td><td class="num">0.01419</td><td class="num">36.7%</td><td class="num">+0.080</td></tr>
+<tr><td>Set deviation</td><td class="num">0.01000</td><td class="num">25.8%</td><td class="num">+0.057</td></tr>
+<tr><td>Deck quality</td><td class="num">0.00250</td><td class="num">6.5%</td><td class="num">+0.014</td></tr>
+<tr><td>Game luck</td><td class="num">0.01200</td><td class="num">31.0%</td><td class="num">+0.068</td></tr>
+</table></div>
+$$
+\hat a_{\text{OTJ}} = +0.057, \qquad \operatorname{sd}(a_{\text{OTJ}} \mid y) = \sqrt{0.01 - 0.01^2/0.03869} = 0.086 .
+$$
+<p>OTJ reads as a good set for this player, but one set-format's deviation is barely identified.
+Its posterior s.d. (0.086) is larger than the estimate, and close to the prior s.d. of 0.10. The
+parameter \(\sigma_a\) is learned across many player-sets, not from any one.</p>
+
+<p class="note">Before the next set-format the rating starts at \(m^- = 0.5560\) and
+\(P^- = 0.00899 + 0.05^2\,\Delta\). Only the +0.080 core share carried over.</p>
+
+<h2>8. Approximations and caveats</h2>
+<ul>
+<li><b>Deck noise is aggregated.</b> Treating \(\bar e_t\) as one shift on the whole set-format
+ignores how deck quality interacts with Premier Draft's 7-win / 3-loss stopping rule. The per-draft
+record moments (<code>draft_win_sq_sum</code> and friends) are there to estimate \(\tau\)
+directly.</li>
+<li><b>The cap is a belief rule.</b> A random walk has no stationary spread. Capping \(P\) at
+\(\sigma^2\) is coherent for the prior a returning player gets, not for a generative model.</li>
+<li><b>Linearization moves the state; quadrature scores it.</b> The pseudo-observation is accurate
+when \(I\) is large. For a handful of games the posterior is skewed and the Gaussian state is an
+approximation. The likelihood used for fitting doesn't rely on it.</li>
+<li><b>Cube is not a set.</b> Run as one more set-format in a Premier Draft chain, cube
+events inflate the set deviation: in the five-player data \(\hat\sigma_a\) is 0.10 with cube
+events and 0.06 without. Cube probably needs its own chain, or exclusion.</li>
+<li><b>Rank is the player's own rank.</b> \(\beta_r\) adjusts for the strength of the pool a
+player is matched into at that rank, not for a particular opponent's rank.</li>
+<li><b>Example parameters are provisional.</b> \(c\), \(\sigma_a\) and \(\beta_r\) come from five
+highly engaged community players. \(\sigma\), \(\mu_0\) and \(\tau\) are assumed, and set
+baselines are zero. The numbers show the mechanics, not production values.</li>
+</ul>
+
+<h2>References</h2>
+<ol class="refs">
+<li>Glickman, M. E. (1999). Parameter estimation in large dynamic paired comparison experiments.
+<i>Journal of the Royal Statistical Society C</i>, 48(3), 377–394. The Glicko system:
+rating deviation growing between periods, and an approximate Bayesian update.</li>
+<li>Fahrmeir, L. (1992). Posterior mode estimation by extended Kalman filtering for multivariate
+dynamic generalized linear models. <i>JASA</i>, 87(418), 501–509. Pseudo-observations from the
+score and information of a GLM likelihood inside a Kalman filter.</li>
+<li>Bell, B. M. and Cathey, F. W. (1993). The iterated Kalman filter update as a Gauss–Newton
+method. <i>IEEE Transactions on Automatic Control</i>, 38(2), 294–297.</li>
+<li>Liu, Q. and Pierce, D. A. (1994). A note on Gauss–Hermite quadrature. <i>Biometrika</i>,
+81(3), 624–629. Adaptive quadrature centred on the mode.</li>
+<li>Durbin, J. and Koopman, S. J. (2012). <i>Time Series Analysis by State Space Methods</i>, 2nd
+ed. Oxford University Press. Kalman filtering, Gaussian conditioning, and non-Gaussian
+observation models.</li>
+</ol>
+
+</main>
+</body>
+</html>

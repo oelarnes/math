@@ -10,5 +10,6 @@ comm -13 <(echo "$PRE_PIDS") <(echo "$POST_PIDS") | xargs -r kill 2>/dev/null ||
 SITE_DIR=/var/www/html/math
 rm -rf $SITE_DIR/*
 cp -r _build/html/* $SITE_DIR
+cp ../notes/*.html $SITE_DIR
 
 echo "site deployed to $SITE_DIR"
