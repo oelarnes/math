@@ -259,7 +259,9 @@ next set's luck.</p>
 
 <h2>8. Worked example: one player's OTJ Premier Draft</h2>
 
-<p>Data from Limited Level-Ups opt-in event records (player <code>magicflea</code>). Parameters
+<p>Data from Limited Level-Ups opt-in event records (player <code>magicflea</code>), restricted to
+sets released since <i>Strixhaven</i>. A player's set-format is dropped if all of its events came
+after the set's original run, so reruns count only alongside original-run play. Parameters
 held fixed:</p>
 <div class="scroll"><table>
 <tr><th>Parameter</th><th class="num">Value</th><th>Source</th></tr>
@@ -273,67 +275,67 @@ held fixed:</p>
 </table></div>
 
 <h3>Step 1: carry forward</h3>
-<p>The previous set-format, <i>Murders at Karlov Manor</i>, ended at \(m = 0.4511\),
-\(P = 0.01040\) (s.d. 0.102). OTJ's release window is centred \(\Delta = 0.172\) years
+<p>The previous set-format, <i>Murders at Karlov Manor</i>, ended at \(m = 0.4092\),
+\(P = 0.01345\) (s.d. 0.116). OTJ's release window is centred \(\Delta = 0.172\) years
 later:</p>
 $$
-m^- = 0.4511, \qquad P^- = 0.01040 + 0.05^2 \times 0.172 = 0.01040 + 0.00043 = 0.01083 \quad (\text{s.d. } 0.104).
+m^- = 0.4092, \qquad P^- = 0.01345 + 0.05^2 \times 0.172 = 0.01345 + 0.00043 = 0.01388 \quad (\text{s.d. } 0.118).
 $$
 <p>A two-month gap adds very little: drift matters over years, not weeks.</p>
 
 <h3>Step 2: the record</h3>
 <div class="scroll"><table>
 <tr><th>Rank bucket</th><th class="num">Record</th><th class="num">\(\beta_r\)</th></tr>
-<tr><td>Silver</td><td class="num">28–6</td><td class="num">−0.288</td></tr>
-<tr><td>Gold</td><td class="num">5–6</td><td class="num">−0.029</td></tr>
+<tr><td>Silver</td><td class="num">28–6</td><td class="num">−0.279</td></tr>
+<tr><td>Gold</td><td class="num">5–6</td><td class="num">−0.004</td></tr>
 <tr><td>Platinum</td><td class="num">166–86</td><td class="num">0.000</td></tr>
-<tr><td>Diamond</td><td class="num">44–21</td><td class="num">+0.057</td></tr>
+<tr><td>Diamond</td><td class="num">44–21</td><td class="num">+0.072</td></tr>
 <tr><td><b>Total</b></td><td class="num"><b>243–119</b> in 49 drafts</td><td class="num"></td></tr>
 </table></div>
 <p>The raw win rate is 243/362 = 67.1%, or \(\operatorname{logit}(243/362) = 0.714\)
 in log-odds, before any rank adjustment. Relinearizing from the prior mean:</p>
 <div class="scroll"><table>
 <tr><th>Pass</th><th class="num">\(\hat x\)</th><th class="num">\(U\)</th><th class="num">\(I\)</th><th class="num">\(y\)</th><th class="num">\(R\)</th><th class="num">\(K\)</th><th class="num">\(m\)</th></tr>
-<tr><td>1</td><td class="num">0.4511</td><td class="num">20.435</td><td class="num">85.573</td><td class="num">0.6899</td><td class="num">0.01752</td><td class="num">0.3820</td><td class="num">0.5423</td></tr>
-<tr><td>2</td><td class="num">0.5423</td><td class="num">12.715</td><td class="num">83.644</td><td class="num">0.6943</td><td class="num">0.01778</td><td class="num">0.3784</td><td class="num">0.5431</td></tr>
-<tr><td>3</td><td class="num">0.5431</td><td class="num">12.646</td><td class="num">83.625</td><td class="num">0.6943</td><td class="num">0.01779</td><td class="num">0.3784</td><td class="num">0.5431</td></tr>
+<tr><td>1</td><td class="num">0.4092</td><td class="num">24.389</td><td class="num">86.434</td><td class="num">0.6914</td><td class="num">0.01740</td><td class="num">0.4437</td><td class="num">0.5344</td></tr>
+<tr><td>2</td><td class="num">0.5344</td><td class="num">13.719</td><td class="num">83.913</td><td class="num">0.6979</td><td class="num">0.01775</td><td class="num">0.4389</td><td class="num">0.5359</td></tr>
+<tr><td>3</td><td class="num">0.5359</td><td class="num">13.594</td><td class="num">83.880</td><td class="num">0.6979</td><td class="num">0.01775</td><td class="num">0.4388</td><td class="num">0.5359</td></tr>
 </table></div>
 <p>At convergence the observation noise is</p>
 $$
-R = \underbrace{0.01196}_{1/I} + \underbrace{0.00020}_{0.10^2/49} + \underbrace{0.00563}_{0.075^2} = 0.01779 .
+R = \underbrace{0.01192}_{1/I} + \underbrace{0.00020}_{0.10^2/49} + \underbrace{0.00563}_{0.075^2} = 0.01775 .
 $$
 <p>Luck is the largest term, about twice the set deviation. Deck variance is negligible over 49 drafts.</p>
 
 <h3>Step 3: update</h3>
 $$
-S = 0.01083 + 0.01779 = 0.02862, \qquad K = \frac{0.01083}{0.02862} = 0.3784,
+S = 0.01388 + 0.01775 = 0.03163, \qquad K = \frac{0.01388}{0.03163} = 0.4388,
 $$
 $$
-m = 0.4511 + 0.3784 \times (0.6943 - 0.4511) = 0.5431, \qquad
-P = (1 - 0.3784) \times 0.01083 = 0.00673 \quad (\text{s.d. } 0.082).
+m = 0.4092 + 0.4388 \times (0.6979 - 0.4092) = 0.5359, \qquad
+P = (1 - 0.4388) \times 0.01388 = 0.00779 \quad (\text{s.d. } 0.088).
 $$
-<p>The rating moves from \(\operatorname{logit}^{-1}(0.4511) = 61.1\%\) to
-\(\operatorname{logit}^{-1}(0.5431) = 63.3\%\) expected win rate against platinum-strength
+<p>The rating moves from \(\operatorname{logit}^{-1}(0.4092) = 60.1\%\) to
+\(\operatorname{logit}^{-1}(0.5359) = 63.1\%\) expected win rate against platinum-strength
 opponents.</p>
 
 <h3>Step 4: attribution</h3>
-<p>The surprise is \(y - m^- = 0.6943 - 0.4511 = +0.243\):</p>
+<p>The surprise is \(y - m^- = 0.6979 - 0.4092 = +0.289\):</p>
 <div class="scroll"><table>
 <tr><th>Source</th><th class="num">Variance</th><th class="num">Share</th><th class="num">Part of surprise</th></tr>
-<tr><td>Core skill (moves the rating)</td><td class="num">0.01083</td><td class="num">37.8%</td><td class="num">+0.092</td></tr>
-<tr><td>Set deviation</td><td class="num">0.00563</td><td class="num">19.7%</td><td class="num">+0.048</td></tr>
-<tr><td>Deck quality</td><td class="num">0.00020</td><td class="num">0.7%</td><td class="num">+0.002</td></tr>
-<tr><td>Game luck</td><td class="num">0.01196</td><td class="num">41.8%</td><td class="num">+0.102</td></tr>
+<tr><td>Core skill (moves the rating)</td><td class="num">0.01388</td><td class="num">43.9%</td><td class="num">+0.127</td></tr>
+<tr><td>Set deviation</td><td class="num">0.00563</td><td class="num">17.8%</td><td class="num">+0.051</td></tr>
+<tr><td>Deck quality</td><td class="num">0.00020</td><td class="num">0.6%</td><td class="num">+0.002</td></tr>
+<tr><td>Game luck</td><td class="num">0.01192</td><td class="num">37.7%</td><td class="num">+0.109</td></tr>
 </table></div>
 $$
-\hat a_{\text{OTJ}} = +0.048, \qquad \operatorname{sd}(a_{\text{OTJ}} \mid y) = \sqrt{0.075^2 - 0.075^4/0.02862} = 0.067 .
+\hat a_{\text{OTJ}} = +0.051, \qquad \operatorname{sd}(a_{\text{OTJ}} \mid y) = \sqrt{0.075^2 - 0.075^4/0.03163} = 0.068 .
 $$
 <p>OTJ reads as a good set for this player, but one set-format's deviation is barely identified.
-Its posterior s.d. (0.067) is larger than the estimate, and close to the prior s.d. of 0.075. The
+Its posterior s.d. (0.068) is larger than the estimate, and close to the prior s.d. of 0.075. The
 parameter \(\sigma_a\) is learned across many player-sets, not from any one.</p>
 
-<p class="note">Before the next set-format the rating starts at \(m^- = 0.5431\) and
-\(P^- = 0.00673 + 0.05^2\,\Delta\). Only the +0.092 core share carried over.</p>
+<p class="note">Before the next set-format the rating starts at \(m^- = 0.5359\) and
+\(P^- = 0.00779 + 0.05^2\,\Delta\). Only the +0.127 core share carried over.</p>
 
 <h2>9. Approximations and caveats</h2>
 <ul>
@@ -436,14 +438,14 @@ $$
 <p>Every game counts for less by the same factor \(1/(1 + Iv)\). The factor shrinks as the
 record grows, so a set-format's information can never exceed \(1/v \approx 1/\sigma_a^2\). One set
 is one draw of the set deviation, and more games don't average it away. In the OTJ example,
-\(I = 83.6\) and \(v = 0.075^2 + 0.10^2/49 = 0.00583\), so</p>
+\(I = 83.9\) and \(v = 0.075^2 + 0.10^2/49 = 0.00583\), so</p>
 $$
-\tilde I = \frac{83.6}{1 + 83.6 \times 0.00583} = 56.2, \qquad \frac{1}{v} = 172 .
+\tilde I = \frac{83.9}{1 + 83.9 \times 0.00583} = 56.3, \qquad \frac{1}{v} = 172 .
 $$
 <p>OTJ counts about two-thirds as much as its 362 games would without set deviation. At
 convergence the tempered score balances the prior's pull,
-\(\tilde U = 12.65/1.487 = 8.50 \approx (0.5431 - 0.4511)/0.01083 = 8.50\), and the posterior
-variance is the inverse curvature, \(P = 1/(56.2 + 92.3) = 0.00673\), as in Section 8.</p>
+\(\tilde U = 13.59/1.489 = 9.13 \approx (0.5359 - 0.4092)/0.01388 = 9.13\), and the posterior
+variance is the inverse curvature, \(P = 1/(56.3 + 72.0) = 0.00779\), as in Section 8.</p>
 
 <h3>A.4 More coefficients</h3>
 <p>With many coefficients, as in a regression on every card in a set, the same step holds with
