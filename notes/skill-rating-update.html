@@ -57,8 +57,9 @@ set-format of results, with every model parameter held fixed. Skill is the log-o
 game against a standardized general Premier Draft opponent played at platinum rank, relative to a
 per-set baseline. The update is a scalar Kalman filter with a
 Laplace (Gaussian) approximation to the binomial game likelihood, as in Glicko. It also
-splits the player's surprise among four sources: a change in core skill, a set-specific
-deviation, deck quality, and game luck. Section 7 covers how skill groups are assigned from the
+splits the player's surprise among three sources: a change in core skill, a set-specific
+deviation, and event luck. Event luck is game luck scaled by \(\kappa\), which folds deck quality and
+record-based pairing into one number (Section 2). Section 7 covers how skill groups are assigned from the
 ratings, and Section 8 works through a real update: one player's
 <i>Outlaws of Thunder Junction</i> Premier Draft record.</p>
 </div>
@@ -89,10 +90,12 @@ $$
 <tr><td>\(m_t,\ P_t\)</td><td>rating mean and variance: our belief \(s_t \sim \mathcal N(m_t, P_t)\)</td><td>state, per player</td></tr>
 <tr><td>\(a_t\)</td><td>set deviation: how far off core the player is in this set-format; fresh each time</td><td>latent, per player</td></tr>
 <tr><td>\(e_{t,d}\)</td><td>deck quality of draft \(d\) relative to the player's usual</td><td>latent, per draft</td></tr>
+<tr><td>\(\gamma_{w,l}\)</td><td>record pairing: how much stronger the opponent is at event record \(w\)–\(l\) than in game 1</td><td>fitted from public game data</td></tr>
 <tr><td>\(\mu_0,\ \sigma\)</td><td>population mean and spread of skill: a new player's prior, and the cap on \(P\)</td><td>parameter</td></tr>
 <tr><td>\(c\)</td><td>drift: s.d. of core-skill change per year</td><td>parameter</td></tr>
 <tr><td>\(\sigma_a\)</td><td>s.d. of the set deviation</td><td>parameter</td></tr>
-<tr><td>\(\tau\)</td><td>s.d. of deck quality between drafts</td><td>parameter</td></tr>
+<tr><td>\(\tau\)</td><td>s.d. of deck quality between drafts</td><td>fitted from public game data</td></tr>
+<tr><td>\(\kappa\)</td><td>event luck multiplier: the variance of a record relative to independent games, from \(\tau\) and \(\gamma\)</td><td>parameter</td></tr>
 <tr><td>\(o_r = b_t + \beta_r\)</td><td>opponent benchmark for a game at rank \(r\) in set-format \(t\): set baseline \(b_t\) (centres the set-format's 50+-game players) plus rank offset \(\beta_r\), with \(\beta_{\text{platinum}} = 0\)</td><td>parameter</td></tr>
 </table></div>
 
@@ -103,12 +106,14 @@ back to the player's rank.</p>
 
 <h2>2. Model</h2>
 
-<p>A game in draft \(d\) of set-format \(t\), played at rank \(r\), is won with probability</p>
+<p>A game in draft \(d\) of set-format \(t\), played at rank \(r\) with the event's record at
+\(w\)–\(l\), is won with probability</p>
 $$
-\Pr(\text{win}) = \operatorname{logit}^{-1}\!\big(s_t + a_t + e_{t,d} - o_r\big),
+\Pr(\text{win}) = \operatorname{logit}^{-1}\!\big(s_t + a_t + e_{t,d} - \gamma_{w,l} - o_r\big),
 \qquad o_r = b_t + \beta_r ,
 $$
-<p>with independent \(a_t \sim \mathcal N(0, \sigma_a^2)\) and \(e_{t,d} \sim \mathcal N(0, \tau^2)\).
+<p>with independent \(a_t \sim \mathcal N(0, \sigma_a^2)\) and \(e_{t,d} \sim \mathcal N(0, \tau^2)\),
+and \(\gamma_{0,0} = 0\), so game 1 of an event is the reference opponent.
 Core skill follows a random walk in calendar time, \(s_{t} = s_{t-1} + \eta_t\) with
 \(\eta_t \sim \mathcal N(0,\, c^2 \Delta_t)\), where \(\Delta_t\) is the time between the two
 set-formats in years. Each set-format is dated at the midpoint of its expansion's original
@@ -116,10 +121,73 @@ release window, from its release until the next release. Events from later rerun
 the original set-format. A player seen for the first time starts at
 \(s \sim \mathcal N(\mu_0, \sigma^2)\).</p>
 
-<p>The update needs one simplification. The deck terms enter at the level of the whole
-set-format, as their average \(\bar e_t = \frac1D \sum_d e_{t,d} \sim \mathcal N(0, \tau^2/D)\).
-Summary rows record total games and wins rather than each draft's record, so this is the natural
-granularity.</p>
+<h3>Event luck: folding deck quality and pairing into \(\kappa\)</h3>
+
+<p>Summary rows record total games and wins, not the order of games within an event, so the
+update can't use \(e_{t,d}\) or \(\gamma_{w,l}\) directly. What it needs from them is how they change
+the noise in a record. They pull in opposite directions:</p>
+<ul>
+<li><b>Deck quality spreads records out.</b> Every game in a draft is played with the same deck,
+so a good deck lifts all of them together. Games within an event are positively correlated.</li>
+<li><b>Record pairing pulls records together.</b> Premier Draft pairs players by event record, so a
+win brings a stronger next opponent and a loss a weaker one. Games within an event are negatively
+correlated.</li>
+</ul>
+<p>Both were fitted from public 17Lands Premier Draft game data: eleven sets from
+<i>Duskmourn</i> to the present, users with 100+ games, complete events only, mythic-rank events
+excluded (pairing there is thought to follow hidden matchmaking rating instead). That is 474,000
+events and 2.85 million games. Each game's outcome was modelled as in the equation above, with
+\(e_{t,d}\) integrated out. The fit gives \(\tau = 0.35\), and \(\gamma\) rises by about
+\(\gamma_1 = 0.08\) log-odds per net game won:</p>
+<div class="scroll"><table>
+<tr><th>Record before the game</th><th class="num">0–2</th><th class="num">0–1</th><th class="num">0–0</th><th class="num">1–0</th><th class="num">2–0</th><th class="num">3–0</th><th class="num">4–0</th><th class="num">5–0</th><th class="num">6–0</th></tr>
+<tr><th>\(\gamma_{w,l}\)</th><td class="num">−0.21</td><td class="num">−0.11</td><td class="num">0</td><td class="num">+0.11</td><td class="num">+0.18</td><td class="num">+0.26</td><td class="num">+0.28</td><td class="num">+0.31</td><td class="num">+0.36</td></tr>
+</table></div>
+
+<p>Write \(W\) and \(N\) for an event's wins and games, and \(p = \mathbb E[W]/\mathbb E[N]\) for
+the player's win rate. If every game were an independent coin with probability \(p\), the record's
+luck would be \(\operatorname{Var}(W - pN) = p(1-p)\,\mathbb E[N]\). This holds even with the 7-win /
+3-loss stopping rule (Wald's identity), and it's the \(1/I\) of Section 5. The event luck multiplier
+is the ratio of the actual variance to that:</p>
+$$
+\kappa = \frac{\operatorname{Var}(W - pN)}{p(1-p)\,\mathbb E[N]} .
+$$
+<p>Computed exactly from the fitted \(\tau\) and \(\gamma\), by enumerating every possible event and
+integrating over the deck effect:</p>
+<div class="scroll"><table>
+<tr><th>Win rate</th><th class="num">Games / event</th><th class="num">Deck only (\(\tau\))</th><th class="num">Pairing only (\(\gamma\))</th><th class="num">Both: \(\kappa\)</th></tr>
+<tr><td>44%</td><td class="num">5.3</td><td class="num">1.14</td><td class="num">0.82</td><td class="num">0.95</td></tr>
+<tr><td>50%</td><td class="num">5.7</td><td class="num">1.13</td><td class="num">0.82</td><td class="num">0.94</td></tr>
+<tr><td>55%</td><td class="num">6.2</td><td class="num">1.12</td><td class="num">0.82</td><td class="num">0.94</td></tr>
+<tr><td>60%</td><td class="num">6.7</td><td class="num">1.11</td><td class="num">0.84</td><td class="num">0.94</td></tr>
+<tr><td>65%</td><td class="num">7.1</td><td class="num">1.09</td><td class="num">0.85</td><td class="num">0.95</td></tr>
+<tr><td>70%</td><td class="num">7.4</td><td class="num">1.09</td><td class="num">0.88</td><td class="num">0.96</td></tr>
+</table></div>
+<p>Deck quality alone would make records 9–14% noisier than independent games, and pairing alone
+12–18% less noisy. Together they nearly cancel, leaving records about 5% less noisy than coin
+flips at every skill level.</p>
+
+<p>A linear approximation shows why. Two games in the same event share the deck effect, which
+adds \(\tau^2\) to the covariance of their logits. Pairing subtracts \(2\gamma_1\): a win rather than a
+loss in the earlier game moves the record by two net games, and so moves the later opponent by
+\(2\gamma_1\). Each pair of games then has outcome correlation \(\rho \approx p(1-p)\,\delta\) with
+\(\delta = \tau^2 - 2\gamma_1\). An event of \(\bar n\) games has \(\bar n(\bar n-1)/2\) pairs, so</p>
+$$
+\kappa \approx 1 + (\bar n - 1)\,p(1-p)\,\delta,
+\qquad
+\delta = 0.35^2 - 2 \times 0.081 = 0.122 - 0.161 = -0.039 .
+$$
+<p>With \(\bar n \approx 6\) games per event and \(p(1-p) \approx 0.24\),
+\(\kappa \approx 1 - 5 \times 0.24 \times 0.039 = 0.95\). This is within 0.01 of the exact value at
+win rates from 44% to 65%. Pairing (\(2\gamma_1 = 0.16\)) slightly outweighs deck variance
+(\(\tau^2 = 0.12\)).</p>
+
+<p>This note uses one constant, \(\kappa = 0.95\). Two independent checks agree. Refitting on
+users with 500+ games (\(\tau = 0.39\), slope \(0.084\)) gives 0.96–0.97. Separately, the opt-in
+Limited Level-Ups event records of five strong players (5,800 events, mythic included) spread
+0.967 times as much as independent games predict. So \(\kappa\) lies between 0.95 and 0.97. With
+\(\kappa\) in place, the deck terms need no separate entry in the update: their net effect is
+inside it.</p>
 
 <h2>3. Step 1: carry the rating forward</h2>
 
@@ -174,8 +242,8 @@ skill that best fits this one set-format, ignoring everything known about the pl
 \(P_t^-\) (Step 1). They say where the player was, and how sure we are, after drift.</li>
 <li><b>From this set-format:</b> the record \((w_r, n_r)\), the number of drafts \(D\), and the
 benchmark \(o_r\). Together they give \(\ell\) from Section 4.</li>
-<li><b>Shared parameters:</b> \(\sigma_a\) and \(\tau\), which say how much of a set's result can be
-unrelated to core skill.</li>
+<li><b>Shared parameters:</b> \(\sigma_a\), which says how much of a set's result can be
+unrelated to core skill, and \(\kappa\), which scales game luck for event structure.</li>
 </ul>
 
 <h3>The cost function</h3>
@@ -186,7 +254,7 @@ $$
 $$
 <p>where the record's weight is</p>
 $$
-w = \frac{1}{1 + I\,(\sigma_a^2 + \tau^2/D)} .
+w = \frac{1}{\kappa + I\,\sigma_a^2} .
 $$
 <ul>
 <li>The first term is the logistic loss of Section 4. It pulls the rating toward the skill
@@ -194,11 +262,12 @@ that best explains this set's games.</li>
 <li>The second term is a ridge penalty centred on the previous rating. Its strength
 \(1/P_t^-\) comes from the player's history: a long, consistent history makes it stiff, and time
 away loosens it.</li>
-<li>The weight \(w\) discounts the record for set deviation and deck noise. Here
+<li>The weight \(w\) adjusts the record for event luck and set deviation. Here
 \(I = \sum_r n_r p_r (1 - p_r)\) is the record's information, roughly a quarter of the number of
-games. A few games are weighted almost fully. A large record is discounted, because more games
+games. A few games are weighted by about \(1/\kappa\): slightly more than fully, because records
+are a little less noisy than independent games. A large record is discounted, because more games
 can't average away the set deviation: one set-format is one draw of it. However many games are
-played, the record counts for at most \(1/(\sigma_a^2 + \tau^2/D)\).</li>
+played, the record counts for at most \(1/\sigma_a^2\).</li>
 </ul>
 <p>The rating's variance is read off the shape of the cost at its minimum: \(P_t\) is one over
 the curvature there. A sharply curved minimum means a confident rating.</p>
@@ -210,7 +279,7 @@ the code and the worked example use. Each step condenses the record into the ski
 \(y\), and that point's noise variance, \(R\):</p>
 $$
 y = \hat x + \frac{U}{I}, \qquad
-R = \underbrace{\frac{1}{I}}_{\text{luck}} + \underbrace{\frac{\tau^2}{D}}_{\text{deck}} + \underbrace{\sigma_a^2}_{\text{set}},
+R = \underbrace{\frac{\kappa}{I}}_{\text{event luck}} + \underbrace{\sigma_a^2}_{\text{set}},
 \qquad U = \sum_r \big(w_r - n_r p_r\big),
 $$
 <p>with \(p_r\) evaluated at the current estimate \(\hat x\). The rating then moves part of the
@@ -228,35 +297,38 @@ established player \(P_t^-\) has shrunk below \(\sigma_a^2\), and most of a surp
 rating effectively remembers.</p>
 
 <h3>Fitting the shared parameters</h3>
-<p>The update takes \(c\), \(\sigma_a\), \(\tau\), \(\sigma\), \(\mu_0\) and the rank offsets as
+<p>The update takes \(c\), \(\sigma_a\), \(\kappa\), \(\sigma\), \(\mu_0\) and the rank offsets as
 given. They are fitted once, across all players, by how well the model predicts each
 set-format's record before seeing it. For every player-set, the model assigns a probability to
 the actual record using only the carried-forward rating. The fit chooses the parameters that
 make those records, together, most probable. Each probability averages the binomial record
 over the rating's uncertainty, computed numerically (adaptive Gauss–Hermite quadrature, Liu and
-Pierce 1994), and a standard optimizer searches the parameters. Too little drift, say, makes
+Pierce 1994), and a standard optimizer searches the parameters. The record's log-likelihood
+enters as \(\ell/\kappa\), so its luck variance is \(\kappa/I\), as in the update. \(\kappa\) itself
+is held at the value from Section 2, which per-game data pins down far more sharply than
+summary rows could. Too little drift, say, makes
 returning players' results look surprising; too much makes every rating vague. The fit
 balances the two.</p>
 
 <h2>6. Step 4: attributing the surprise</h2>
 
-<p>The skill the record points to, \(y\), is core skill plus three things that aren't: the set
-deviation, the drafts' average deck quality, and game luck \(\varepsilon\), whose variance is
-\(1/I\). So the surprise has four parts,
-\(y - m_t^- = (s_t - m_t^-) + a_t + \bar e_t + \varepsilon\). Given the prior they are independent
+<p>The skill the record points to, \(y\), is core skill plus two things that aren't: the set
+deviation, and event luck \(\varepsilon\), whose variance is \(\kappa/I\). Event luck covers game
+outcomes, deck quality and pairing together (Section 2). So the surprise has three parts,
+\(y - m_t^- = (s_t - m_t^-) + a_t + \varepsilon\). Given the prior they are independent
 zero-mean Gaussians, each with covariance with \(y\) equal to its own variance, so conditioning
 on \(y\) splits the surprise in proportion to the variances:</p>
 $$
 \mathbb E[\,\text{term} \mid y\,] = \frac{\operatorname{Var}(\text{term})}{S}\,(y - m_t^-),
 \qquad
-\frac{P_t^-}{S} + \frac{\sigma_a^2}{S} + \frac{\tau^2/D}{S} + \frac{1/I}{S} = 1 .
+\frac{P_t^-}{S} + \frac{\sigma_a^2}{S} + \frac{\kappa/I}{S} = 1 .
 $$
 <p>The core share is \(K\). The set share gives the estimate of this set-format's deviation:</p>
 $$
 \hat a_t = \frac{\sigma_a^2}{S}\,(y - m_t^-), \qquad
 \operatorname{Var}(a_t \mid y) = \sigma_a^2 - \frac{\sigma_a^4}{S} .
 $$
-<p>Only the core part carries forward. The set, deck and luck parts are written off when the
+<p>Only the core part carries forward. The set and luck parts are written off when the
 next set-format starts.</p>
 
 <h2>7. Assigning skill groups</h2>
@@ -302,7 +374,7 @@ held fixed:</p>
 <tr><th>Parameter</th><th class="num">Value</th><th>Source</th></tr>
 <tr><td>\(\sigma\)</td><td class="num">0.25</td><td>earlier estimate of the 17Lands skill spread</td></tr>
 <tr><td>\(\mu_0\)</td><td class="num">0.04</td><td>\(\operatorname{logit}(0.51)\): the Premier Draft win rate at platinum, the median rank, of 17Lands users with 10–49 games in a set (public data, 11 recent sets). A stand-in for new players: the all-games rate is 54%, but heavy players dominate it.</td></tr>
-<tr><td>\(\tau\)</td><td class="num">0.10</td><td>LLU event records give 0 [0, 0.05]; the estimator reads low below about 0.2, so 0.10 is mid-range</td></tr>
+<tr><td>\(\kappa\)</td><td class="num">0.95</td><td>Section 2: deck variance \(\tau = 0.35\) and record pairing \(\gamma\) (about 0.08 per net win) from public game data; checks give 0.96–0.97</td></tr>
 <tr><td>\(c\)</td><td class="num">0.05 / year</td><td>round value; the five-player fit gives 0.06 [0, 0.10]</td></tr>
 <tr><td>\(\sigma_a\)</td><td class="num">0.075</td><td>five-player fit: 0.074 [0.034, 0.096], excluding cube events</td></tr>
 <tr><td>\(\beta_r\)</td><td class="num">see below</td><td>pooled rank fit, five LLU players; platinum = 0</td></tr>
@@ -310,11 +382,11 @@ held fixed:</p>
 </table></div>
 
 <h3>Step 1: carry forward</h3>
-<p>The previous set-format, <i>Murders at Karlov Manor</i>, ended at \(m = 0.4092\),
-\(P = 0.01345\) (s.d. 0.116). OTJ's release window is centred \(\Delta = 0.172\) years
+<p>The previous set-format, <i>Murders at Karlov Manor</i>, ended at \(m = 0.4135\),
+\(P = 0.01289\) (s.d. 0.114). OTJ's release window is centred \(\Delta = 0.172\) years
 later:</p>
 $$
-m^- = 0.4092, \qquad P^- = 0.01345 + 0.05^2 \times 0.172 = 0.01345 + 0.00043 = 0.01388 \quad (\text{s.d. } 0.118).
+m^- = 0.4135, \qquad P^- = 0.01289 + 0.05^2 \times 0.172 = 0.01289 + 0.00043 = 0.01332 \quad (\text{s.d. } 0.115).
 $$
 <p>A two-month gap adds very little: drift matters over years, not weeks.</p>
 
@@ -331,53 +403,61 @@ $$
 in log-odds, before any rank adjustment. Relinearizing from the prior mean:</p>
 <div class="scroll"><table>
 <tr><th>Pass</th><th class="num">\(\hat x\)</th><th class="num">\(U\)</th><th class="num">\(I\)</th><th class="num">\(y\)</th><th class="num">\(R\)</th><th class="num">\(K\)</th><th class="num">\(m\)</th></tr>
-<tr><td>1</td><td class="num">0.4092</td><td class="num">24.389</td><td class="num">86.434</td><td class="num">0.6914</td><td class="num">0.01740</td><td class="num">0.4437</td><td class="num">0.5344</td></tr>
-<tr><td>2</td><td class="num">0.5344</td><td class="num">13.719</td><td class="num">83.913</td><td class="num">0.6979</td><td class="num">0.01775</td><td class="num">0.4389</td><td class="num">0.5359</td></tr>
-<tr><td>3</td><td class="num">0.5359</td><td class="num">13.594</td><td class="num">83.880</td><td class="num">0.6979</td><td class="num">0.01775</td><td class="num">0.4388</td><td class="num">0.5359</td></tr>
+<tr><td>1</td><td class="num">0.4135</td><td class="num">24.013</td><td class="num">86.356</td><td class="num">0.6916</td><td class="num">0.01663</td><td class="num">0.4448</td><td class="num">0.5372</td></tr>
+<tr><td>2</td><td class="num">0.5372</td><td class="num">13.480</td><td class="num">83.849</td><td class="num">0.6980</td><td class="num">0.01695</td><td class="num">0.4400</td><td class="num">0.5387</td></tr>
+<tr><td>3</td><td class="num">0.5387</td><td class="num">13.357</td><td class="num">83.816</td><td class="num">0.6981</td><td class="num">0.01696</td><td class="num">0.4400</td><td class="num">0.5387</td></tr>
 </table></div>
 <p>At convergence the observation noise is</p>
 $$
-R = \underbrace{0.01192}_{1/I} + \underbrace{0.00020}_{0.10^2/49} + \underbrace{0.00563}_{0.075^2} = 0.01775 .
+R = \underbrace{0.01133}_{\kappa/I \,=\, 0.95/83.82} + \underbrace{0.00563}_{0.075^2} = 0.01696 .
 $$
-<p>Luck is the largest term, about twice the set deviation. Deck variance is negligible over 49 drafts.</p>
+<p>Event luck is the largest term, about twice the set deviation. Independent games would give
+\(1/I = 0.01193\); deck variance and pairing together take 5% off that.</p>
 
 <h3>Step 3: update</h3>
 $$
-S = 0.01388 + 0.01775 = 0.03163, \qquad K = \frac{0.01388}{0.03163} = 0.4388,
+S = 0.01332 + 0.01696 = 0.03028, \qquad K = \frac{0.01332}{0.03028} = 0.4400,
 $$
 $$
-m = 0.4092 + 0.4388 \times (0.6979 - 0.4092) = 0.5359, \qquad
-P = (1 - 0.4388) \times 0.01388 = 0.00779 \quad (\text{s.d. } 0.088).
+m = 0.4135 + 0.4400 \times (0.6981 - 0.4135) = 0.5387, \qquad
+P = (1 - 0.4400) \times 0.01332 = 0.00746 \quad (\text{s.d. } 0.086).
 $$
-<p>The rating moves from \(\operatorname{logit}^{-1}(0.4092) = 60.1\%\) to
-\(\operatorname{logit}^{-1}(0.5359) = 63.1\%\) expected win rate against platinum-strength
+<p>The rating moves from \(\operatorname{logit}^{-1}(0.4135) = 60.2\%\) to
+\(\operatorname{logit}^{-1}(0.5387) = 63.2\%\) expected win rate against platinum-strength
 opponents.</p>
 
 <h3>Step 4: attribution</h3>
-<p>The surprise is \(y - m^- = 0.6979 - 0.4092 = +0.289\):</p>
+<p>The surprise is \(y - m^- = 0.6981 - 0.4135 = +0.285\):</p>
 <div class="scroll"><table>
 <tr><th>Source</th><th class="num">Variance</th><th class="num">Share</th><th class="num">Part of surprise</th></tr>
-<tr><td>Core skill (moves the rating)</td><td class="num">0.01388</td><td class="num">43.9%</td><td class="num">+0.127</td></tr>
-<tr><td>Set deviation</td><td class="num">0.00563</td><td class="num">17.8%</td><td class="num">+0.051</td></tr>
-<tr><td>Deck quality</td><td class="num">0.00020</td><td class="num">0.6%</td><td class="num">+0.002</td></tr>
-<tr><td>Game luck</td><td class="num">0.01192</td><td class="num">37.7%</td><td class="num">+0.109</td></tr>
+<tr><td>Core skill (moves the rating)</td><td class="num">0.01332</td><td class="num">44.0%</td><td class="num">+0.125</td></tr>
+<tr><td>Set deviation</td><td class="num">0.00563</td><td class="num">18.6%</td><td class="num">+0.053</td></tr>
+<tr><td>Event luck</td><td class="num">0.01133</td><td class="num">37.4%</td><td class="num">+0.107</td></tr>
 </table></div>
 $$
-\hat a_{\text{OTJ}} = +0.051, \qquad \operatorname{sd}(a_{\text{OTJ}} \mid y) = \sqrt{0.075^2 - 0.075^4/0.03163} = 0.068 .
+\hat a_{\text{OTJ}} = +0.053, \qquad \operatorname{sd}(a_{\text{OTJ}} \mid y) = \sqrt{0.075^2 - 0.075^4/0.03028} = 0.068 .
 $$
 <p>OTJ reads as a good set for this player, but one set-format's deviation is barely identified.
 Its posterior s.d. (0.068) is larger than the estimate, and close to the prior s.d. of 0.075. The
 parameter \(\sigma_a\) is learned across many player-sets, not from any one.</p>
 
-<p class="note">Before the next set-format the rating starts at \(m^- = 0.5359\) and
-\(P^- = 0.00779 + 0.05^2\,\Delta\). Only the +0.127 core share carried over.</p>
+<p class="note">Before the next set-format the rating starts at \(m^- = 0.5387\) and
+\(P^- = 0.00746 + 0.05^2\,\Delta\). Only the +0.125 core share carried over.</p>
 
 <h2>9. Approximations and caveats</h2>
 <ul>
-<li><b>Deck noise is aggregated.</b> Treating \(\bar e_t\) as one shift on the whole set-format
-ignores how deck quality interacts with Premier Draft's 7-win / 3-loss stopping rule. The per-draft
-record moments (<code>draft_win_sq_sum</code> and friends) are there to estimate \(\tau\)
+<li><b>\(\kappa\) is one constant.</b> It really depends on a row's win rate and games per
+event, through \(\kappa \approx 1 + (\bar n - 1)\,p(1-p)\,\delta\). For Premier Draft it stays
+between 0.94 and 0.96 across the usual range, so one value loses little. The planned refinement
+is a per-row \(\kappa\) from that formula, using the row's own games per draft and win rate, with
+\(\delta = \tau^2 - 2\gamma_1\) fitted once. That also carries over to formats with other structures.
+The per-draft record moments (<code>draft_win_sq_sum</code> and friends) can check \(\kappa\)
 directly.</li>
+<li><b>Pairing also compresses the scale.</b> Record pairing changes the mean as well as the noise.
+Stronger players spend more games at good records, against stronger opponents, so their realized
+log-odds are about 0.88 times their skill against a game-1 opponent. The model's skill is on that
+compressed scale. Skill groups are percentiles, so their order and membership are unaffected. Only
+absolute win-rate claims would need the correction.</li>
 <li><b>The cap is a belief rule.</b> A random walk has no stationary spread. Capping \(P\) at
 \(\sigma^2\) is coherent for the prior a returning player gets, not for a generative model.</li>
 <li><b>Linearization moves the state; quadrature scores it.</b> The quadratic approximation behind each Newton step is accurate
@@ -389,8 +469,9 @@ events and 0.07 without. Cube probably needs its own chain, or exclusion.</li>
 <li><b>Rank is the player's own rank.</b> \(\beta_r\) adjusts for the strength of the pool a
 player is matched into at that rank, not for a particular opponent's rank.</li>
 <li><b>Example parameters are provisional.</b> \(c\), \(\sigma_a\) and \(\beta_r\) come from five
-highly engaged community players. \(\sigma\) is an earlier estimate, \(\mu_0\) comes from
-public data, \(\tau\) is set from the event records, and set baselines are zero. The numbers show the mechanics, not production values.</li>
+highly engaged community players, fitted before \(\kappa\) replaced a separate deck term (that
+term was negligible, so the refit should move little). \(\sigma\) is an earlier estimate,
+\(\mu_0\) and \(\kappa\) come from public data, and set baselines are zero. The numbers show the mechanics, not production values.</li>
 </ul>
 
 <h2>References</h2>
@@ -437,7 +518,7 @@ player's previous rating, and its strength \(1/P^-\) is whatever the filter has 
 by drift since the last set-format.</p>
 
 <h3>A.2 The Kalman step is that Newton step</h3>
-<p>Leave out set deviation and deck noise for the moment, so \(R = 1/I\). Start from the Kalman
+<p>Leave out set deviation and take \(\kappa = 1\) for the moment, so \(R = 1/I\). Start from the Kalman
 update of Section 5 with \(y = \hat x + U/I\):</p>
 $$
 \begin{aligned}
@@ -460,27 +541,29 @@ Relinearizing at the new mean and repeating the step from the same prior is just
 to the posterior mode. That is Bell and Cathey's (1993) result, and why the passes in Section 8
 settle at once.</p>
 
-<h3>A.3 What set deviation and deck noise change</h3>
-<p>With them, \(R = 1/I + v\) where \(v = \sigma_a^2 + \tau^2/D\). The record measures effective skill
-\(x + a + \bar e\). Its Gaussian approximation \(\mathcal N(y;\, x,\, 1/I)\), convolved with the
-\(\mathcal N(0, v)\) noise, gives \(\mathcal N(y;\, x,\, 1/I + v)\): Gaussian variances add. Running the
-algebra of A.2 with this \(R\) gives the same Newton step with tempered score and information:</p>
+<h3>A.3 What \(\kappa\) and set deviation change</h3>
+<p>With them, \(R = \kappa/I + \sigma_a^2\). The record measures effective skill \(x + a\), with
+event-luck variance \(\kappa/I\) in place of \(1/I\). Its Gaussian approximation
+\(\mathcal N(y;\, x,\, \kappa/I)\), convolved with the \(\mathcal N(0, \sigma_a^2)\) set deviation,
+gives \(\mathcal N(y;\, x,\, \kappa/I + \sigma_a^2)\): Gaussian variances add. Running the algebra of
+A.2 with this \(R\) gives the same Newton step with tempered score and information:</p>
 $$
 x_{\text{new}} = \hat x + \frac{\tilde U - (\hat x - m^-)/P^-}{\tilde I + 1/P^-},
 \qquad
-\tilde U = \frac{U}{1 + I v}, \quad \tilde I = \frac{I}{1 + I v} = \frac{1}{R} .
+\tilde U = \frac{U}{\kappa + I \sigma_a^2}, \quad \tilde I = \frac{I}{\kappa + I \sigma_a^2} = \frac{1}{R} .
 $$
-<p>Every game counts for less by the same factor \(1/(1 + Iv)\). The factor shrinks as the
-record grows, so a set-format's information can never exceed \(1/v \approx 1/\sigma_a^2\). One set
-is one draw of the set deviation, and more games don't average it away. In the OTJ example,
-\(I = 83.9\) and \(v = 0.075^2 + 0.10^2/49 = 0.00583\), so</p>
+<p>Every game counts by the same factor \(1/(\kappa + I\sigma_a^2)\). For a short record this is
+about \(1/\kappa\), slightly more than one. The factor shrinks as the record grows, so a
+set-format's information can never exceed \(1/\sigma_a^2\). One set is one draw of the set
+deviation, and more games don't average it away. In the OTJ example, \(I = 83.8\) and
+\(\kappa + I\sigma_a^2 = 0.95 + 83.8 \times 0.075^2 = 0.95 + 0.471 = 1.421\), so</p>
 $$
-\tilde I = \frac{83.9}{1 + 83.9 \times 0.00583} = 56.3, \qquad \frac{1}{v} = 172 .
+\tilde I = \frac{83.8}{1.421} = 59.0, \qquad \frac{1}{\sigma_a^2} = 178 .
 $$
-<p>OTJ counts about two-thirds as much as its 362 games would without set deviation. At
-convergence the tempered score balances the prior's pull,
-\(\tilde U = 13.59/1.489 = 9.13 \approx (0.5359 - 0.4092)/0.01388 = 9.13\), and the posterior
-variance is the inverse curvature, \(P = 1/(56.3 + 72.0) = 0.00779\), as in Section 8.</p>
+<p>OTJ counts about 70% as much as its 362 games would as independent games with no set
+deviation. At convergence the tempered score balances the prior's pull,
+\(\tilde U = 13.357/1.421 = 9.40 \approx (0.5387 - 0.4135)/0.01332 = 9.40\), and the posterior
+variance is the inverse curvature, \(P = 1/(59.0 + 75.1) = 0.00746\), as in Section 8.</p>
 
 <h3>A.4 More coefficients</h3>
 <p>With many coefficients, as in a regression on every card in a set, the same step holds with
