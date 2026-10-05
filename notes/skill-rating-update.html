@@ -135,7 +135,7 @@ stops a long-absent player's uncertainty from exceeding a newcomer's. Their old 
 but it carries no more confidence than the population prior. Skill groups for a new set-format
 are assigned at this point, from the carried-forward ratings (Section 7).</p>
 
-<h2>4. Step 2: turn the record into a Gaussian observation</h2>
+<h2>4. Step 2: how well a skill value explains the record</h2>
 
 <p>Fix the effective skill \(x\). Each game at rank \(r\) is won independently with probability
 \(p_r = \operatorname{logit}^{-1}(x - o_r)\), so the log-likelihood of the record is built up
@@ -161,49 +161,88 @@ only the constant. The rule depends on results alone, so any particular sequence
 has probability equal to a product of \(p_r\) and \(1 - p_r\) terms (the likelihood
 principle).</p>
 
-<p>A second-order expansion around a point \(\hat x\), with score and information</p>
-$$
-U(\hat x) = \sum_r \big(w_r - n_r p_r\big), \qquad
-I(\hat x) = \sum_r n_r p_r (1 - p_r),
-$$
-<p>with \(p_r\) evaluated at \(\hat x\), gives \(\ell(x) \approx \text{const} - \tfrac12 I\,(x - y)^2\). That is the likelihood of a
-Gaussian <b>pseudo-observation</b></p>
-$$
-y = \hat x + \frac{U(\hat x)}{I(\hat x)}, \qquad \operatorname{Var}(\varepsilon) = \frac{1}{I(\hat x)} .
-$$
-<p>This is a Laplace approximation, the device behind Glicko's update and Fahrmeir's (1992)
-extended Kalman filter for dynamic generalized linear models. The record is evidence about
-effective skill \(x = s_t + a_t + \bar e_t\), not core skill alone. As an observation of \(s_t\):</p>
-$$
-y = s_t + a_t + \bar e_t + \varepsilon, \qquad
-R = \underbrace{\frac{1}{I}}_{\text{luck}} + \underbrace{\frac{\tau^2}{D}}_{\text{deck}} + \underbrace{\sigma_a^2}_{\text{set}} .
-$$
+<p>Higher \(\ell(x)\) means \(x\) explains the record better. On its own it would pick the
+skill that best fits this one set-format, ignoring everything known about the player before.</p>
 
-<h2>5. Step 3: the Kalman update</h2>
+<h2>5. Step 3: the update</h2>
 
-<p>With prior \(s_t \sim \mathcal N(m_t^-, P_t^-)\) and the observation above, Gaussian
-conditioning gives the posterior:</p>
+<h3>What is estimated</h3>
+<p>One update estimates a single quantity per player: core skill \(s_t\), reported as a rating
+\(m_t\) with variance \(P_t\). Everything else is fixed going in:</p>
+<ul>
+<li><b>From the player's history:</b> the carried-forward rating \(m_t^-\) and its variance
+\(P_t^-\) (Step 1). They say where the player was, and how sure we are, after drift.</li>
+<li><b>From this set-format:</b> the record \((w_r, n_r)\), the number of drafts \(D\), and the
+benchmark \(o_r\). Together they give \(\ell\) from Section 4.</li>
+<li><b>Shared parameters:</b> \(\sigma_a\) and \(\tau\), which say how much of a set's result can be
+unrelated to core skill.</li>
+</ul>
+
+<h3>The cost function</h3>
+<p>The new rating is the skill value that minimizes a cost with two terms:</p>
+$$
+\text{cost}(s) = \underbrace{-\,w\,\ell(s)}_{\text{misfit to this set's record}}
+\;+\; \underbrace{\frac{(s - m_t^-)^2}{2P_t^-}}_{\text{distance from the carried-forward rating}},
+\qquad w = \frac{1}{1 + I\,(\sigma_a^2 + \tau^2/D)} .
+$$
+<ul>
+<li>The first term is the logistic loss of Section 4. It pulls the rating toward the skill
+that best explains this set's games.</li>
+<li>The second term is a ridge penalty centred on the previous rating. Its strength
+\(1/P_t^-\) comes from the player's history: a long, consistent history makes it stiff, and time
+away loosens it.</li>
+<li>The weight \(w\) discounts the record for set deviation and deck noise. Here
+\(I = \sum_r n_r p_r (1 - p_r)\) is the record's information, roughly a quarter of the number of
+games. A few games are weighted almost fully. A large record is discounted, because more games
+can't average away the set deviation: one set-format is one draw of it. However many games are
+played, the record counts for at most \(1/(\sigma_a^2 + \tau^2/D)\).</li>
+</ul>
+<p>The rating's variance is read off the shape of the cost at its minimum: \(P_t\) is one over
+the curvature there. A sharply curved minimum means a confident rating.</p>
+
+<h3>How it is solved</h3>
+<p>The cost has one minimum, found with a few Newton steps from the carried-forward rating.
+Appendix A shows the algebra. The steps are usually written in Kalman-filter form, which is what
+the code and the worked example use. Each step condenses the record into the skill it points to,
+\(y\), and that point's noise variance, \(R\):</p>
+$$
+y = \hat x + \frac{U}{I}, \qquad
+R = \underbrace{\frac{1}{I}}_{\text{luck}} + \underbrace{\frac{\tau^2}{D}}_{\text{deck}} + \underbrace{\sigma_a^2}_{\text{set}},
+\qquad U = \sum_r \big(w_r - n_r p_r\big),
+$$
+<p>with \(p_r\) evaluated at the current estimate \(\hat x\). The rating then moves part of the
+way from the prior toward \(y\):</p>
 $$
 S = P_t^- + R, \qquad K = \frac{P_t^-}{S}, \qquad
 m_t = m_t^- + K\,(y - m_t^-), \qquad P_t = (1 - K)\,P_t^- .
 $$
-<p>The expansion point matters when the record is far from the prior, so the code relinearizes
-at the new mean and repeats, three passes, always from the same prior. This is the iterated
-extended Kalman filter, which Bell and Cathey (1993) show is Gauss–Newton on the posterior
-mode. It usually settles in two passes.</p>
+<p>Repeating with \(\hat x = m_t\) converges in about two steps. The code runs three.</p>
 
 <p>\(K\) is the share of the surprise \(y - m_t^-\) that moves the rating. Early in a player's
-history \(P_t^-\) dominates \(S\), so the rating moves most of the way to the new result. For an
+history \(P_t^-\) is large, so the rating moves most of the way to the new result. For an
 established player \(P_t^-\) has shrunk below \(\sigma_a^2\), and most of a surprise is read as
-"this set", not "this player changed". Drift sets how low \(P\) can go. An active player's
-\(P\) settles where each set's reduction balances the \(c^2\Delta\) added between sets, so drift
-sets how far back the rating effectively remembers.</p>
+"this set", not "this player changed". Drift sets how low \(P\) can go, and so how far back the
+rating effectively remembers.</p>
+
+<h3>Fitting the shared parameters</h3>
+<p>The update takes \(c\), \(\sigma_a\), \(\tau\), \(\sigma\), \(\mu_0\) and the rank offsets as
+given. They are fitted once, across all players, by how well the model predicts each
+set-format's record before seeing it. For every player-set, the model assigns a probability to
+the actual record using only the carried-forward rating. The fit chooses the parameters that
+make those records, together, most probable. Each probability averages the binomial record
+over the rating's uncertainty, computed numerically (adaptive Gauss–Hermite quadrature, Liu and
+Pierce 1994), and a standard optimizer searches the parameters. Too little drift, say, makes
+returning players' results look surprising; too much makes every rating vague. The fit
+balances the two.</p>
 
 <h2>6. Step 4: attributing the surprise</h2>
 
-<p>Given the prior, the four terms of \(y - m_t^- = (s_t - m_t^-) + a_t + \bar e_t + \varepsilon\) are
-independent zero-mean Gaussians. Each has covariance with \(y\) equal to its own variance, so
-conditioning on \(y\) splits the surprise in proportion to the variances:</p>
+<p>The skill the record points to, \(y\), is core skill plus three things that aren't: the set
+deviation, the drafts' average deck quality, and game luck \(\varepsilon\), whose variance is
+\(1/I\). So the surprise has four parts,
+\(y - m_t^- = (s_t - m_t^-) + a_t + \bar e_t + \varepsilon\). Given the prior they are independent
+zero-mean Gaussians, each with covariance with \(y\) equal to its own variance, so conditioning
+on \(y\) splits the surprise in proportion to the variances:</p>
 $$
 \mathbb E[\,\text{term} \mid y\,] = \frac{\operatorname{Var}(\text{term})}{S}\,(y - m_t^-),
 \qquad
@@ -216,13 +255,6 @@ $$
 $$
 <p>Only the core part carries forward. The set, deck and luck parts are written off when the
 next set-format starts.</p>
-
-<h3>Likelihood contribution</h3>
-<p>Fitting the parameters uses each set-format's marginal likelihood, the binomial record
-integrated over \(x \sim \mathcal N(m_t^-,\ P_t^- + \sigma_a^2 + \tau^2/D)\). The code computes it
-with adaptive Gauss–Hermite quadrature, 12 nodes centred on the posterior mode (Liu and Pierce
-1994). The Gaussian approximation above is used only to move the state. Using it in the
-likelihood as well understated the population spread by about 18% in simulation.</p>
 
 <h2>7. Assigning skill groups</h2>
 
@@ -345,7 +377,7 @@ record moments (<code>draft_win_sq_sum</code> and friends) are there to estimate
 directly.</li>
 <li><b>The cap is a belief rule.</b> A random walk has no stationary spread. Capping \(P\) at
 \(\sigma^2\) is coherent for the prior a returning player gets, not for a generative model.</li>
-<li><b>Linearization moves the state; quadrature scores it.</b> The pseudo-observation is accurate
+<li><b>Linearization moves the state; quadrature scores it.</b> The quadratic approximation behind each Newton step is accurate
 when \(I\) is large. For a handful of games the posterior is skewed and the Gaussian state is an
 approximation. The likelihood used for fitting doesn't rely on it.</li>
 <li><b>Cube is not a set.</b> Run as one more set-format in a Premier Draft chain, cube
