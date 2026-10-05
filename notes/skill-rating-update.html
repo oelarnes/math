@@ -58,7 +58,8 @@ game against a standardized general Premier Draft opponent played at platinum ra
 per-set baseline. The update is a scalar Kalman filter with a
 Laplace (Gaussian) approximation to the binomial game likelihood, as in Glicko. It also
 splits the player's surprise among four sources: a change in core skill, a set-specific
-deviation, deck quality, and game luck. Section 7 works through a real update: one player's
+deviation, deck quality, and game luck. Section 7 covers how skill groups are assigned from the
+ratings, and Section 8 works through a real update: one player's
 <i>Outlaws of Thunder Junction</i> Premier Draft record.</p>
 </div>
 
@@ -131,7 +132,8 @@ $$
 <p>This is the Kalman prediction step for a random walk (Glickman 1999 does the same for Glicko's
 rating deviation). The cap is a rule about our belief, not part of the generative model. It
 stops a long-absent player's uncertainty from exceeding a newcomer's. Their old rating is kept,
-but it carries no more confidence than the population prior.</p>
+but it carries no more confidence than the population prior. Skill groups for a new set-format
+are assigned at this point, from the carried-forward ratings (Section 7).</p>
 
 <h2>4. Step 2: turn the record into a Gaussian observation</h2>
 
@@ -222,7 +224,40 @@ with adaptive Gauss–Hermite quadrature, 12 nodes centred on the posterior mode
 1994). The Gaussian approximation above is used only to move the state. Using it in the
 likelihood as well understated the population spread by about 18% in simulation.</p>
 
-<h2>7. Worked example: one player's OTJ Premier Draft</h2>
+<h2>7. Assigning skill groups</h2>
+
+<p>Groups for a new set-format are fixed before it starts. Each player is classified from
+their carried-forward belief \(\mathcal N(m^-, P^-)\): Step 1 applied up to the new set's
+start, using none of its results. Two consequences follow:</p>
+<ul>
+<li>A player's group reflects every earlier set-format, weighted as the filter weights them, not
+just the last three.</li>
+<li>Time away matters. The drift added since a player's last set-format widens \(P^-\), which
+can drop them out of a group without their rating moving.</li>
+</ul>
+
+<p>The bands keep their current definitions: bottom 0–25%, middle 33–67% and top 75–100% of
+players with 50+ games. With uncertain ratings, the band edges are quantiles of the population's
+skill distribution. That distribution is estimated as the mixture of carried-forward beliefs of
+the \(N\) reference players, those with 50+ games in the most recent set-format:</p>
+$$
+F(z) = \frac1N \sum_{i=1}^{N} \Phi\!\left(\frac{z - m_i^-}{\sqrt{P_i^-}}\right),
+\qquad F(\ell_g) = \text{lower percentile of band } g, \quad F(u_g) = \text{upper percentile}.
+$$
+<p>A player's probability of being in band \(g\), and the assignment rule, are</p>
+$$
+\pi_g = \Phi\!\left(\frac{u_g - m^-}{\sqrt{P^-}}\right) - \Phi\!\left(\frac{\ell_g - m^-}{\sqrt{P^-}}\right),
+\qquad \text{assign to } g \text{ if } \pi_g \ge q .
+$$
+<p>The threshold \(q\) must exceed 0.5 so no one qualifies for two bands. It is 0.8 by default
+and will be chosen by backtesting precision against the current rule. A player who clears no
+threshold is left unassigned, as players outside the bands are today.</p>
+
+<p>Only core skill is classified. The coming set's deviation \(a\) is unknown when groups are
+fixed, and it's the part a group label shouldn't predict: groups describe players, not their
+next set's luck.</p>
+
+<h2>8. Worked example: one player's OTJ Premier Draft</h2>
 
 <p>Data from Limited Level-Ups opt-in event records (player <code>magicflea</code>). Parameters
 held fixed:</p>
@@ -300,7 +335,7 @@ parameter \(\sigma_a\) is learned across many player-sets, not from any one.</p>
 <p class="note">Before the next set-format the rating starts at \(m^- = 0.5312\) and
 \(P^- = 0.00780 + 0.05^2\,\Delta\). Only the +0.089 core share carried over.</p>
 
-<h2>8. Approximations and caveats</h2>
+<h2>9. Approximations and caveats</h2>
 <ul>
 <li><b>Deck noise is aggregated.</b> Treating \(\bar e_t\) as one shift on the whole set-format
 ignores how deck quality interacts with Premier Draft's 7-win / 3-loss stopping rule. The per-draft
