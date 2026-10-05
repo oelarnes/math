@@ -375,74 +375,74 @@ held fixed:</p>
 <tr><td>\(\sigma\)</td><td class="num">0.25</td><td>earlier estimate of the 17Lands skill spread</td></tr>
 <tr><td>\(\mu_0\)</td><td class="num">0.04</td><td>\(\operatorname{logit}(0.51)\): the Premier Draft win rate at platinum, the median rank, of 17Lands users with 10–49 games in a set (public data, 11 recent sets). A stand-in for new players: the all-games rate is 54%, but heavy players dominate it.</td></tr>
 <tr><td>\(\kappa\)</td><td class="num">0.95</td><td>Section 2: deck variance \(\tau = 0.35\) and record pairing \(\gamma\) (about 0.08 per net win) from public game data; checks give 0.96–0.97</td></tr>
-<tr><td>\(c\)</td><td class="num">0.05 / year</td><td>round value; the five-player fit gives 0.06 [0, 0.10]</td></tr>
-<tr><td>\(\sigma_a\)</td><td class="num">0.075</td><td>five-player fit: 0.074 [0.034, 0.096], excluding cube events</td></tr>
-<tr><td>\(\beta_r\)</td><td class="num">see below</td><td>pooled rank fit, five LLU players; platinum = 0</td></tr>
-<tr><td>\(b_t\)</td><td class="num">0</td><td>held at zero (five players can't set a baseline)</td></tr>
+<tr><td>\(c\)</td><td class="num">0.05 / year</td><td>round value; the six-player fit gives 0.063 [0, 0.10]</td></tr>
+<tr><td>\(\sigma_a\)</td><td class="num">0.075</td><td>six-player fit: 0.074 [0.044, 0.096], excluding cube events</td></tr>
+<tr><td>\(\beta_r\)</td><td class="num">see below</td><td>pooled rank fit, six players; platinum = 0</td></tr>
+<tr><td>\(b_t\)</td><td class="num">0</td><td>held at zero (six players can't set a baseline)</td></tr>
 </table></div>
 
 <h3>Step 1: carry forward</h3>
-<p>The previous set-format, <i>Murders at Karlov Manor</i>, ended at \(m = 0.4135\),
+<p>The previous set-format, <i>Murders at Karlov Manor</i>, ended at \(m = 0.4159\),
 \(P = 0.01289\) (s.d. 0.114). OTJ's release window is centred \(\Delta = 0.172\) years
 later:</p>
 $$
-m^- = 0.4135, \qquad P^- = 0.01289 + 0.05^2 \times 0.172 = 0.01289 + 0.00043 = 0.01332 \quad (\text{s.d. } 0.115).
+m^- = 0.4159, \qquad P^- = 0.01289 + 0.05^2 \times 0.172 = 0.01289 + 0.00043 = 0.01332 \quad (\text{s.d. } 0.115).
 $$
 <p>A two-month gap adds very little: drift matters over years, not weeks.</p>
 
 <h3>Step 2: the record</h3>
 <div class="scroll"><table>
 <tr><th>Rank bucket</th><th class="num">Record</th><th class="num">\(\beta_r\)</th></tr>
-<tr><td>Silver</td><td class="num">28–6</td><td class="num">−0.279</td></tr>
-<tr><td>Gold</td><td class="num">5–6</td><td class="num">−0.004</td></tr>
+<tr><td>Silver</td><td class="num">28–6</td><td class="num">−0.289</td></tr>
+<tr><td>Gold</td><td class="num">5–6</td><td class="num">+0.009</td></tr>
 <tr><td>Platinum</td><td class="num">166–86</td><td class="num">0.000</td></tr>
-<tr><td>Diamond</td><td class="num">44–21</td><td class="num">+0.072</td></tr>
+<tr><td>Diamond</td><td class="num">44–21</td><td class="num">+0.075</td></tr>
 <tr><td><b>Total</b></td><td class="num"><b>243–119</b> in 49 drafts</td><td class="num"></td></tr>
 </table></div>
 <p>The raw win rate is 243/362 = 67.1%, or \(\operatorname{logit}(243/362) = 0.714\)
 in log-odds, before any rank adjustment. Relinearizing from the prior mean:</p>
 <div class="scroll"><table>
 <tr><th>Pass</th><th class="num">\(\hat x\)</th><th class="num">\(U\)</th><th class="num">\(I\)</th><th class="num">\(y\)</th><th class="num">\(R\)</th><th class="num">\(K\)</th><th class="num">\(m\)</th></tr>
-<tr><td>1</td><td class="num">0.4135</td><td class="num">24.013</td><td class="num">86.356</td><td class="num">0.6916</td><td class="num">0.01663</td><td class="num">0.4448</td><td class="num">0.5372</td></tr>
-<tr><td>2</td><td class="num">0.5372</td><td class="num">13.480</td><td class="num">83.849</td><td class="num">0.6980</td><td class="num">0.01695</td><td class="num">0.4400</td><td class="num">0.5387</td></tr>
-<tr><td>3</td><td class="num">0.5387</td><td class="num">13.357</td><td class="num">83.816</td><td class="num">0.6981</td><td class="num">0.01696</td><td class="num">0.4400</td><td class="num">0.5387</td></tr>
+<tr><td>1</td><td class="num">0.4159</td><td class="num">23.828</td><td class="num">86.305</td><td class="num">0.6920</td><td class="num">0.01663</td><td class="num">0.4448</td><td class="num">0.5387</td></tr>
+<tr><td>2</td><td class="num">0.5387</td><td class="num">13.378</td><td class="num">83.812</td><td class="num">0.6984</td><td class="num">0.01696</td><td class="num">0.4399</td><td class="num">0.5402</td></tr>
+<tr><td>3</td><td class="num">0.5402</td><td class="num">13.257</td><td class="num">83.779</td><td class="num">0.6984</td><td class="num">0.01696</td><td class="num">0.4399</td><td class="num">0.5402</td></tr>
 </table></div>
 <p>At convergence the observation noise is</p>
 $$
-R = \underbrace{0.01133}_{\kappa/I \,=\, 0.95/83.82} + \underbrace{0.00563}_{0.075^2} = 0.01696 .
+R = \underbrace{0.01134}_{\kappa/I \,=\, 0.95/83.78} + \underbrace{0.00563}_{0.075^2} = 0.01696 .
 $$
 <p>Event luck is the largest term, about twice the set deviation. Independent games would give
-\(1/I = 0.01193\); deck variance and pairing together take 5% off that.</p>
+\(1/I = 0.01194\); deck variance and pairing together take 5% off that.</p>
 
 <h3>Step 3: update</h3>
 $$
-S = 0.01332 + 0.01696 = 0.03028, \qquad K = \frac{0.01332}{0.03028} = 0.4400,
+S = 0.01332 + 0.01696 = 0.03028, \qquad K = \frac{0.01332}{0.03028} = 0.4399,
 $$
 $$
-m = 0.4135 + 0.4400 \times (0.6981 - 0.4135) = 0.5387, \qquad
-P = (1 - 0.4400) \times 0.01332 = 0.00746 \quad (\text{s.d. } 0.086).
+m = 0.4159 + 0.4399 \times (0.6984 - 0.4159) = 0.5402, \qquad
+P = (1 - 0.4399) \times 0.01332 = 0.00746 \quad (\text{s.d. } 0.086).
 $$
-<p>The rating moves from \(\operatorname{logit}^{-1}(0.4135) = 60.2\%\) to
-\(\operatorname{logit}^{-1}(0.5387) = 63.2\%\) expected win rate against platinum-strength
+<p>The rating moves from \(\operatorname{logit}^{-1}(0.4159) = 60.3\%\) to
+\(\operatorname{logit}^{-1}(0.5402) = 63.2\%\) expected win rate against platinum-strength
 opponents.</p>
 
 <h3>Step 4: attribution</h3>
-<p>The surprise is \(y - m^- = 0.6981 - 0.4135 = +0.285\):</p>
+<p>The surprise is \(y - m^- = 0.6984 - 0.4159 = +0.282\):</p>
 <div class="scroll"><table>
 <tr><th>Source</th><th class="num">Variance</th><th class="num">Share</th><th class="num">Part of surprise</th></tr>
-<tr><td>Core skill (moves the rating)</td><td class="num">0.01332</td><td class="num">44.0%</td><td class="num">+0.125</td></tr>
-<tr><td>Set deviation</td><td class="num">0.00563</td><td class="num">18.6%</td><td class="num">+0.053</td></tr>
-<tr><td>Event luck</td><td class="num">0.01133</td><td class="num">37.4%</td><td class="num">+0.107</td></tr>
+<tr><td>Core skill (moves the rating)</td><td class="num">0.01332</td><td class="num">44.0%</td><td class="num">+0.124</td></tr>
+<tr><td>Set deviation</td><td class="num">0.00563</td><td class="num">18.6%</td><td class="num">+0.052</td></tr>
+<tr><td>Event luck</td><td class="num">0.01134</td><td class="num">37.4%</td><td class="num">+0.106</td></tr>
 </table></div>
 $$
-\hat a_{\text{OTJ}} = +0.053, \qquad \operatorname{sd}(a_{\text{OTJ}} \mid y) = \sqrt{0.075^2 - 0.075^4/0.03028} = 0.068 .
+\hat a_{\text{OTJ}} = +0.052, \qquad \operatorname{sd}(a_{\text{OTJ}} \mid y) = \sqrt{0.075^2 - 0.075^4/0.03028} = 0.068 .
 $$
 <p>OTJ reads as a good set for this player, but one set-format's deviation is barely identified.
 Its posterior s.d. (0.068) is larger than the estimate, and close to the prior s.d. of 0.075. The
 parameter \(\sigma_a\) is learned across many player-sets, not from any one.</p>
 
-<p class="note">Before the next set-format the rating starts at \(m^- = 0.5387\) and
-\(P^- = 0.00746 + 0.05^2\,\Delta\). Only the +0.125 core share carried over.</p>
+<p class="note">Before the next set-format the rating starts at \(m^- = 0.5402\) and
+\(P^- = 0.00746 + 0.05^2\,\Delta\). Only the +0.124 core share carried over.</p>
 
 <h2>9. Approximations and caveats</h2>
 <ul>
@@ -468,8 +468,8 @@ events inflate the set deviation: in the five-player data \(\hat\sigma_a\) is ab
 events and 0.07 without. Cube probably needs its own chain, or exclusion.</li>
 <li><b>Rank is the player's own rank.</b> \(\beta_r\) adjusts for the strength of the pool a
 player is matched into at that rank, not for a particular opponent's rank.</li>
-<li><b>Example parameters are provisional.</b> \(c\), \(\sigma_a\) and \(\beta_r\) come from five
-highly engaged community players, fitted before \(\kappa\) replaced a separate deck term (that
+<li><b>Example parameters are provisional.</b> \(c\), \(\sigma_a\) and \(\beta_r\) come from six
+players, five of them highly engaged community players and one an average 17Lands player, fitted before \(\kappa\) replaced a separate deck term (that
 term was negligible, so the refit should move little). \(\sigma\) is an earlier estimate,
 \(\mu_0\) and \(\kappa\) come from public data, and set baselines are zero. The numbers show the mechanics, not production values.</li>
 </ul>
@@ -562,7 +562,7 @@ $$
 $$
 <p>OTJ counts about 70% as much as its 362 games would as independent games with no set
 deviation. At convergence the tempered score balances the prior's pull,
-\(\tilde U = 13.357/1.421 = 9.40 \approx (0.5387 - 0.4135)/0.01332 = 9.40\), and the posterior
+\(\tilde U = 13.257/1.421 = 9.33 \approx (0.5402 - 0.4159)/0.01332 = 9.33\), and the posterior
 variance is the inverse curvature, \(P = 1/(59.0 + 75.1) = 0.00746\), as in Section 8.</p>
 
 <h3>A.4 More coefficients</h3>
