@@ -77,8 +77,14 @@ $$
 <div class="scroll"><table>
 <tr><th>Log-odds</th><td class="num">−0.5</td><td class="num">−0.25</td><td class="num">0</td><td class="num">+0.25</td><td class="num">+0.4</td><td class="num">+0.5</td><td class="num">+0.6</td><td class="num">+0.75</td><td class="num">+1</td></tr>
 <tr><th>Win rate</th><td class="num">37.8%</td><td class="num">43.8%</td><td class="num">50.0%</td><td class="num">56.2%</td><td class="num">59.9%</td><td class="num">62.2%</td><td class="num">64.6%</td><td class="num">67.9%</td><td class="num">73.1%</td></tr>
+<tr><th>Elo</th><td class="num">1513</td><td class="num">1557</td><td class="num">1600</td><td class="num">1643</td><td class="num">1669</td><td class="num">1687</td><td class="num">1704</td><td class="num">1730</td><td class="num">1774</td></tr>
 </table></div>
 <p class="note">Near a 60% win rate, a change of 0.1 in log-odds is about 2.4 percentage points.</p>
+<p>The model works in natural log-odds throughout. Results meant for players are reported on the
+Elo scale, with a platinum-strength opponent at 1600 and 400 points for 10:1 odds:</p>
+$$
+\text{Elo} = 1600 + \frac{400}{\ln 10}\,x \approx 1600 + 174\,x .
+$$
 
 <p>A <b>set-format</b> is one expansion × event type: the unit with one row in
 <code>user_format_gameplay_summaries</code>. Indexing the player's set-formats in time order by
@@ -424,7 +430,7 @@ P = (1 - 0.4399) \times 0.01332 = 0.00746 \quad (\text{s.d. } 0.086).
 $$
 <p>The rating moves from \(\operatorname{logit}^{-1}(0.4159) = 60.3\%\) to
 \(\operatorname{logit}^{-1}(0.5402) = 63.2\%\) expected win rate against platinum-strength
-opponents.</p>
+opponents: from 1672 to 1694 Elo, with the s.d. falling from 20 to 15.</p>
 
 <h3>Step 4: attribution</h3>
 <p>The surprise is \(y - m^- = 0.6984 - 0.4159 = +0.282\):</p>
