@@ -182,8 +182,11 @@ unrelated to core skill.</li>
 <p>The new rating is the skill value that minimizes a cost with two terms:</p>
 $$
 \text{cost}(s) = \underbrace{-\,w\,\ell(s)}_{\text{misfit to this set's record}}
-\;+\; \underbrace{\frac{(s - m_t^-)^2}{2P_t^-}}_{\text{distance from the carried-forward rating}},
-\qquad w = \frac{1}{1 + I\,(\sigma_a^2 + \tau^2/D)} .
+\;+\; \underbrace{\frac{(s - m_t^-)^2}{2P_t^-}}_{\text{distance from the carried-forward rating}}
+$$
+<p>where the record's weight is</p>
+$$
+w = \frac{1}{1 + I\,(\sigma_a^2 + \tau^2/D)} .
 $$
 <ul>
 <li>The first term is the logistic loss of Section 4. It pulls the rating toward the skill
