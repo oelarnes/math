@@ -373,6 +373,85 @@ ed. Oxford University Press. Kalman filtering, Gaussian conditioning, and non-Ga
 observation models.</li>
 </ol>
 
+<h2>Appendix A. The update as Newton's method</h2>
+
+<p>Readers who know Newton's method for logistic regression already know this update. It is one
+regularized Newton step, with the regularization coming from the previous set-format.</p>
+
+<h3>A.1 Newton on the log posterior</h3>
+<p>For one player and one set-format, combine the record's log-likelihood \(\ell(x)\) (Section 4)
+with the carried-forward prior \(\mathcal N(m^-, P^-)\). Up to a constant, the log posterior is</p>
+$$
+J(x) = \ell(x) - \frac{(x - m^-)^2}{2P^-} .
+$$
+<p>Its first derivative is the score minus the prior's pull, and its negative second derivative is
+the information plus the prior's precision:</p>
+$$
+J'(x) = U(x) - \frac{x - m^-}{P^-}, \qquad -J''(x) = I(x) + \frac{1}{P^-} .
+$$
+<p>A Newton step from \(\hat x\) is \(\hat x + J'(\hat x) / \big({-J''(\hat x)}\big)\):</p>
+$$
+x_{\text{new}} = \hat x + \frac{U(\hat x) - (\hat x - m^-)/P^-}{I(\hat x) + 1/P^-} .
+$$
+<p>This is ridge (MAP) logistic regression with one coefficient, \(x\), and the benchmark
+\(o_r\) as a fixed offset. A ridge penalty \(\tfrac{\lambda}{2}\alpha^2\) is the special case
+\(m^- = 0\), \(1/P^- = \lambda\): a Gaussian prior centred at zero. Here the prior is centred on the
+player's previous rating, and its strength \(1/P^-\) is whatever the filter has learned, loosened
+by drift since the last set-format.</p>
+
+<h3>A.2 The Kalman step is that Newton step</h3>
+<p>Leave out set deviation and deck noise for the moment, so \(R = 1/I\). Start from the Kalman
+update of Section 5 with \(y = \hat x + U/I\):</p>
+$$
+\begin{aligned}
+m &= m^- + \frac{P^-}{P^- + 1/I}\,(y - m^-) \\
+  &= \frac{m^-/P^- + I\,y}{1/P^- + I} \\
+  &= \frac{m^-/P^- + I\,\hat x + U}{1/P^- + I} \\
+  &= \hat x + \frac{U - (\hat x - m^-)/P^-}{I + 1/P^-}
+\end{aligned}
+$$
+<ol>
+<li>The Kalman update with \(K = P^-/(P^- + R)\).</li>
+<li>Multiply through by \(I/P^-\): the posterior mean is a precision-weighted average of prior and
+observation.</li>
+<li>Substitute \(y = \hat x + U/I\).</li>
+<li>Subtract \(\hat x\) from the numerator. The result is the Newton step of A.1.</li>
+</ol>
+<p>The variance matches too. \(P = (1-K)P^- = 1/(1/P^- + I)\) is the inverse of \(-J''\): the
+Laplace approximation, which reads the posterior variance off the curvature at the mode.
+Relinearizing at the new mean and repeating the step from the same prior is just iterating Newton
+to the posterior mode. That is Bell and Cathey's (1993) result, and why the passes in Section 8
+settle at once.</p>
+
+<h3>A.3 What set deviation and deck noise change</h3>
+<p>With them, \(R = 1/I + v\) where \(v = \sigma_a^2 + \tau^2/D\). The record measures effective skill
+\(x + a + \bar e\). Its Gaussian approximation \(\mathcal N(y;\, x,\, 1/I)\), convolved with the
+\(\mathcal N(0, v)\) noise, gives \(\mathcal N(y;\, x,\, 1/I + v)\): Gaussian variances add. Running the
+algebra of A.2 with this \(R\) gives the same Newton step with tempered score and information:</p>
+$$
+x_{\text{new}} = \hat x + \frac{\tilde U - (\hat x - m^-)/P^-}{\tilde I + 1/P^-},
+\qquad
+\tilde U = \frac{U}{1 + I v}, \quad \tilde I = \frac{I}{1 + I v} = \frac{1}{R} .
+$$
+<p>Every game counts for less by the same factor \(1/(1 + Iv)\). The factor shrinks as the
+record grows, so a set-format's information can never exceed \(1/v \approx 1/\sigma_a^2\). One set
+is one draw of the set deviation, and more games don't average it away. In the OTJ example,
+\(I = 83.9\) and \(v = 0.0102\), so</p>
+$$
+\tilde I = \frac{83.9}{1 + 83.9 \times 0.0102} = 45.2, \qquad \frac{1}{v} = 98 .
+$$
+<p>OTJ counts about half as much as its 362 games would without set deviation. At convergence the
+tempered score balances the prior's pull,
+\(\tilde U = 13.65/1.856 = 7.35 \approx (0.5312 - 0.4426)/0.01205 = 7.35\), and the posterior
+variance is the inverse curvature, \(P = 1/(45.2 + 83.0) = 0.00780\), as in Section 8.</p>
+
+<h3>A.4 More coefficients</h3>
+<p>With many coefficients, as in a regression on every card in a set, the same step holds with
+\(U\) a gradient vector, \(I + 1/P^-\) a Hessian matrix, and division replaced by a linear
+solve. The binomial is the two-outcome case of the softmax (conditional logit). For more outcomes,
+\(p(1-p)\) becomes \(\operatorname{diag}(p) - pp^\top\). The rating update only stays a scalar
+because each player has one skill, and players are independent given the benchmark.</p>
+
 </main>
 </body>
 </html>
