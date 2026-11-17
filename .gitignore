@@ -9,3 +9,16 @@ __pycache__
 # jupyter
 .ipynb_checkpoints
 scratch.*
+
+# Quarto
+_site
+.quarto
+/.venv
+.pdm-python
+
+/.quarto/
+**/*.quarto_ipynb
+.python-version
+
+# Ad Hoc content
+/ad_hoc/

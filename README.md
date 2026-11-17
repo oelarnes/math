@@ -1,23 +1,39 @@
 # MF Math
 
-To get started, clone the repository into a loose folder. If you're on Windows, I recommend using WSL.
+Math write-ups rendered with [Quarto](https://quarto.org) and published to magic-flea.com/math.
 
-You'll need an active `conda` environment. I tried quite a bit to install Sage without it, and did not get it to work.
-If something below isn't working make sure you have the right environment active.
+## Setup
 
-From the project directory, create and activate the environment (this also does an editable install of the `plot_dg` module from `src`):
+Install Quarto (user-level, no sudo) and the Python environment used by executed cells:
 
 ```
-conda env create -f environment.yml
-conda activate sage
+pdm install
 ```
 
-Install conda with [Miniforge](https://github.com/conda-forge/miniforge), which defaults to the conda-forge channel.
+`plot_dg` (in `src/`) is installed editable, so changes to it are picked up immediately.
 
-To launch the book locally type `jupyter book start --execute` from the `book` directory. You'll get a web server and you should be able
-to start editing text. You can edit text with the web page open side-by-side and you should see rendering as you save.
+## Writing
 
-If something doesn't work or my instructions are bad, reach out.
+Pages are Markdown (`.qmd`) with `$...$` / `$$...$$` math. Shared macros (`\R`, `\pd`, ...) live in
+`_macros.html`. Executed `{python}` cells are frozen in `_freeze/` and only re-run when their page
+changes; commit `_freeze/` with the page.
+
+Live preview with reload on save:
+
+```
+pdm run quarto preview --host 0.0.0.0 --port 3000 --no-browser
+```
+
+Ad hoc pages live in `ad_hoc/` (gitignored): standalone `.html` files are copied to the site root as-is,
+and `.qmd` files render unlisted and noindex. Nothing in `ad_hoc/` is committed.
+
+Publish:
+
+```
+bash publish.sh
+```
+
+SageMath cells are shown with their saved output but are not executed.
 
 Any code is free for copying or reuse in any context and other text content is copyright of the authors with rights reserved.
 

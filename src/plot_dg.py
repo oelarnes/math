@@ -2,6 +2,8 @@
 
 import numpy as np
 import plotly.graph_objects as go
+import plotly.io as pio
+from plotly.io.base_renderers import MimetypeRenderer
 
 
 def dg_figure(
@@ -278,3 +280,24 @@ def fig_2d(
         },
     )
     return fig
+
+
+class _PageRenderer(MimetypeRenderer):
+    """Inline figure HTML for published pages, which load their own MathJax."""
+
+    def to_mimebundle(self, fig_dict):
+        html = pio.to_html(
+            fig_dict,
+            full_html=False,
+            include_plotlyjs="cdn",
+            include_mathjax=False,
+            auto_play=False,
+            default_width="100%",
+            default_height=525,
+        )
+        return {"text/html": html}
+
+
+def use_page_renderer():
+    pio.renderers["page"] = _PageRenderer()
+    pio.renderers.default = "page"

@@ -2,8 +2,7 @@
 
 I'm going to write up some solutions and other stuff for O'Neill's *Elementary Differential Geometry*.
 
-:::{math}
-
+$$
 K = \frac{
     \langle
         \left(
@@ -15,5 +14,4 @@ K = \frac{
     }{
         \text{det } g
     }.
-
-:::
+$$

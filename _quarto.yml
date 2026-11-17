@@ -1,0 +1,33 @@
+project:
+  type: website
+  output-dir: _site
+  render:
+    - index.qmd
+    - oneill/*.qmd
+    - ad_hoc/*.qmd
+
+execute:
+  freeze: auto
+
+website:
+  title: "MagicFlea's Math Notes"
+  description: Writing up some math for fun
+  repo-url: https://github.com/oelarnes/math
+  sidebar:
+    style: docked
+    contents:
+      - index.qmd
+      - section: "O'Neill: Elementary Differential Geometry"
+        contents:
+          - oneill/chapter-1.qmd
+          - oneill/chapter-2.qmd
+
+format:
+  html:
+    theme:
+      light: cosmo
+      dark: darkly
+    respect-user-color-scheme: true
+    toc: true
+    code-copy: true
+    include-before-body: _macros.html

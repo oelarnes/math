@@ -1,10 +1,7 @@
 ---
-kernelspec:
-  name: sagemath
-  language: sage
-  display_name: SageMath 10.7
+aliases:
+  - /chapter-1/index.html
 ---
-
 # Chapter 1
 
 ## Exercises 1.1
@@ -72,7 +69,7 @@ Let's check our answers by trying out [Sage](sagemath.org). In Sage, our
 notion of the function as an algebraic expression of functions is
 paralleled by defining the function as a symbolic expression.
 
-```{code-cell} sagemath
+```{.python filename="SageMath (not executed)"}
 # Exercise 1.1.2
 var('x, y, z, a, t')
 
@@ -83,6 +80,15 @@ cases = {'a': [1, 1, 1], 'b': [3, -1, SR(1)/2], 'c': [t, t**2, t**3], 'd': [a, 1
 for case, args in cases.items():
     print(f"({case}): {f.subs(**xyz(args))}")
 ```
+
+::: {.cell-output .cell-output-stdout}
+```
+(a): 0
+(b): -19/2
+(c): -t^7 + t^4
+(d): a^2 + a - 1
+```
+:::
 
 ### Exercise 3
 
@@ -97,11 +103,12 @@ Express $\pd{f}{x}$ in terms of $x, y$ and $z$ if
 *Solution:*
 
 (a) 
-```{math}
-:enumerated: false
+$$
+\begin{aligned}
 \pd{f}{x} &= \pd{x}{x}\sin(xy) + x\pd{}{x}\sin(xy) + y\pd{}{x}\cos(xz)\\
         &= \bx{\sin(xy) + xy\cos(xy) - yz\sin(xz)}.
-```
+\end{aligned}
+$$
 
 (b) $\pd{f}{x} = \pd{}{g}\sin g \cdot \pd{g}{x} = \cos g \cdot \pd{}{h}(e^h) \cdot \pd{h}{x} = \bx{2xe^{x^2 + y^2 + z^2}\cos e^{x^2 + y^2 + z^2}}$.
 
@@ -109,7 +116,7 @@ Express $\pd{f}{x}$ in terms of $x, y$ and $z$ if
 
 Sage confirms both partial derivatives directly.
 
-```{code-cell} sagemath
+```{.python filename="SageMath (not executed)"}
 # Exercise 1.1.3
 var('x, y, z')
 f = x*sin(x*y) + y*cos(x*z)
@@ -119,21 +126,26 @@ f = sin(exp(x**2 + y**2 + z**2))
 print(f.diff(x))
 ```
 
+::: {.cell-output .cell-output-stdout}
+```
+x*y*cos(x*y) - y*z*sin(x*z) + sin(x*y)
+2*x*cos(e^(x^2 + y^2 + z^2))*e^(x^2 + y^2 + z^2)
+```
+:::
+
 ### Exercise 4
 
 If $g_1, g_2, g_3,$ and $h$ are real-valued functions on $\R^3$, then
 
-```{math}
-:enumerated: false
+$$
 f = h(g_1, g_2, g_3)
-```
+$$
 
 is the function such that
 
-```{math}
-:enumerated: false
+$$
 f(\v{p}) = h(g_1(\v{p}), g_2(\v{p}), g_3(\v{p})) \text{ for all } \v{p}.
-```
+$$
 
 Express $\pd{f}{x}$ in terms of $x, y,$ and $z$, if $h = x^2 - yz$ and
 
@@ -154,23 +166,22 @@ Suppose that $E, E_i$ are formal algebraic expressions (or operations) in three 
 $h = E(x, y, z)$, and $g_i = E_i(x, y, z)$, then, given $E(f, g, h)(\v{p}) = E(f(\v{p}), g(\v{p}), h(\v{p}))$,
 and $x(p_1, p_2, p_3) = p_1$ etc., as in the text,
 
-```{math}
-:enumerated: false
-
+$$
+\begin{aligned}
 f(\v{p}) &= h(g_1(\v{p}), g_2(\v{p}), g_3(\v{p})) \\
     &= E(x, y, z)(g_1(\v{p}), g_2(\v{p}), g_3(\v{p})) \\
     &= E(x(g_1(\v{p}), g_2(\v{p}), g_3(\v{p})), ... ) \\
     &= E(g_1(\v{p}), g_2(\v{p}), g_3(\v{p})) \\
     &= E(E_1(x, y, z)(\v{p}), E_2(x, y, z)(\v{p}), E_3(x, y, z)(\v{p})) \\
-    &= E(E_1(x, y, z), E_2(x, y, z), E_3(x, y, z))(\v{p}), \\
-```
+    &= E(E_1(x, y, z), E_2(x, y, z), E_3(x, y, z))(\v{p}),
+\end{aligned}
+$$
 
 so
 
-```{math}
-:enumerated: false
+$$
 f = E(E_1(x, y, z), E_2(x, y, z), E_3(x, y, z)), \text{ as desired.}
-```
+$$
 
 Back to the very simple solutions to this exercise.
 
@@ -184,7 +195,7 @@ Back to the very simple solutions to this exercise.
 
 Sage confirms by substituting and differentiating.
 
-```{code-cell} sagemath
+```{.python filename="SageMath (not executed)"}
 # Exercise 1.1.4
 var('x, y, z')
 h = x**2 - y*z
@@ -194,6 +205,14 @@ subs = [[x+y, y**2, x+z], [exp(z), exp(x+y), exp(x)], [x, -x, x]]
 for args in subs:
     print(h.subs(**xyz(args)).diff(x))
 ```
+
+::: {.cell-output .cell-output-stdout}
+```
+-y^2 + 2*x + 2*y
+-2*e^(2*x + y)
+4*x
+```
+:::
 
 ## Exercises 1.2
 
@@ -211,20 +230,26 @@ combination of $U_1(\v{p}), U_2(\v{p}), U_3(\v{p})$ .
 *Solution:*
 
 (a)
-```{math}
-:enumerated: false
-
+$$
+\begin{aligned}
 3\v{v}_p - 2\v{w}_p
     &= 3(-2, 1, -1)_p - 2(0, 1, 3)_p \\
     &= (-6, 1, -9)_p \\
     &= \bx{-6U_1(\v{p}) + U_2(\v{p}) - 9U_3(\v{p})}.
-```
+\end{aligned}
+$$
 
 (b)
 
 The plotting library `plot_dg` (in the [repository](https://github.com/oelarnes/math/blob/main/src/plot_dg.py)) provides helpers for figures, points, and arrowed vectors.
 
-```{code-cell} sagemath
+```{python}
+#| include: false
+import plot_dg
+plot_dg.use_page_renderer()
+```
+
+```{python}
 # Exercise 1.2.1
 import numpy as np
 from plot_dg import dg_figure, add_point, add_vector
@@ -252,18 +277,18 @@ Let $V = xU_1 + yU_2$ and $W = 2x^2U_2 - U_3.$ Compute the vector $W - xV$, and 
 
 *Solution:*
 
-```{math}
-:enumerated: false
-
+$$
+\begin{aligned}
 W - xV &= 2x^2U_2 - U_3 - x(xU_1 + yU_2) \\
     &= 2x^2U_2 - U_3 - x^2U_1 - xyU_2 \\
     &= -x^2U_1 + (2x^2 - xy)U_2 - U_3. \\
     \\
 
 (W-xV)_{(-1, 0, 2)} &= -U_1 + 2U_2 - U_3 = \bx{(-1, 2, -1)}.
-```
+\end{aligned}
+$$
 
-```{code-cell} sagemath
+```{.python filename="SageMath (not executed)"}
 # Exercise 1.2.2
 E = EuclideanSpace(names=('x', 'y', 'z'))
 (x, y, z) = E._first_ngens(3)
@@ -276,6 +301,13 @@ Z = W - x*V
 print(Z.display())
 print(Z.at(E((-1, 0, 2)))[:])
 ```
+
+::: {.cell-output .cell-output-stdout}
+```
+-x^2 e_x + (2*x^2 - x*y) e_y - e_z
+[-1, 2, -1]
+```
+:::
 
 ### Exercise 3
 
@@ -334,13 +366,13 @@ each point of $R^3$.
 for any $x, y, z$. Suppose $V = (a + cx)U_1 + bU_2 + (c - ax)U_3 = 0$, and we need each component to be zero,
 that is, solutions to the system
 
-```{math}
-:enumerated: false
-
+$$
+\begin{aligned}
 a + cx &= 0 \\
 b &= 0 \\
-c - ax &= 0. \\
-```
+c - ax &= 0.
+\end{aligned}
+$$
 
 We have $c = ax$, then $a + ax^2 = a(1 + x^2) = 0$, but since $1 + x^2 > 0$, that implies $a = 0$, whence
 $c = 0$, so since $b = 0$, $(a, b, c) = (0, 0, 0)$ for all $\v{p}$ and the vectors are linearly
@@ -348,39 +380,35 @@ independent as desired. $\square$
 
 (b) Now let
 
-```{math}
-:enumerated: false
-
+$$
+\begin{aligned}
 a + cx &= x \\
 b &= y \\
-c - ax &= z, \\
-```
+c - ax &= z,
+\end{aligned}
+$$
 
 and we see that $a = x - cx$, so solve $c - (x - cx)x = z$ for $c$, getting
 
-```{math}
-:enumerated: false
-
+$$
+\begin{aligned}
 c - (x - cx)x = z \\
 c + cx^2 = z + x^2 \\
-c = \frac{z + x^2}{1 + x^2}, \\
-```
+c = \frac{z + x^2}{1 + x^2},
+\end{aligned}
+$$
 
 and
 
-```{math}
-:enumerated: false
-
+$$
 a = x - cx = x - \frac{z + x^2}{1 + x^2}x = \frac{x^3 - x^3 + x - zx}{1 + x^2} = \frac{x - zx}{1 + x^2},
-```
+$$
 
 so the vector field in terms of the new basis is
 
-```{math}
-:enumerated: false
-
+$$
 xU_1 + yU_2 + zU_3 = \bx{\frac{x - zx}{1 + x^2}V_1 + yV_2 + \frac{x^2 + z}{1 + x^2}V_3}.
-```
+$$
 
 ## Exercises 1.3
 
@@ -404,31 +432,31 @@ Compute the derivatives in Exercise 1 using Lemma 3.2.
 *Solution:*
 
 (a)
-```{math}
-:enumerated: false
-
+$$
+\begin{aligned}
 \v{v}_p[f] &= 2U_1\pd{f}{x}(\v{p}) - U_2\pd{f}{y}(\v{p}) + 3U_3\pd{f}{z}(\v{p}) \\
     &= -U_2(2yz)_{|(2, 0, -1)} + 3U_3(y^2)_{|(2, 0, -1)} \\
     &= \bx{0}.
-```
+\end{aligned}
+$$
 
 (b)
-```{math}
-:enumerated: false
-
+$$
+\begin{aligned}
 \v{v}_p[f] &= 2U_1\pd{f}{x}(\v{p}) - U_2\pd{f}{y}(\v{p}) + 3U_3\pd{f}{z}(\v{p}) \\
     &= -U_2(7y^6)_{|(2, 0, -1)} \\
     &= \bx{0}.
-```
+\end{aligned}
+$$
 
 (c)
-```{math}
-:enumerated: false
-
+$$
+\begin{aligned}
 \v{v}_p[f] &= 2U_1\pd{f}{x}(\v{p}) - U_2\pd{f}{y}(\v{p}) + 3U_3\pd{f}{z}(\v{p}) \\
     &= 2U_1(e^x\cos{y})_{|(2, 0, -1)} + U_2(e^x\sin{y})_{|(2, 0, -1)} \\
     &= \bx{2e^2U_1}.
-```
+\end{aligned}
+$$
 
 ### Exercise 4
 
@@ -441,14 +469,13 @@ functions.
 
 Since $V = \sum v_iU_i$, we need only prove $V[x_i] = v_i$ for $i \in \{1,2,3\}$. By Lemma 3.2 and the pointwise principle,
 
-```{math}
-:enumerated: false
-
+$$
+\begin{aligned}
 V[x_i] &= \sum_j v_j \pd{x_i}{x_j} \\
     &= \sum_j v_j \delta_{ij}\\
     &= v_i,
-
-```
+\end{aligned}
+$$
 as desired. $\square$
 
 ## Exercises 1.4
@@ -463,19 +490,15 @@ Find the unique curve such that $\alpha(0) = (1, 0, 5)$ and $\alpha'(t) = (t^2, 
 
 Integrate to get 
 
-```{math}
-:enumerated: false
-
+$$
 \alpha(t) = \left(\frac{t^3}{3} + C_1, \frac{t^2}{2} + C_2, e^t + C_3\right).
-```
+$$
 
 We need $C_1 = 1, C_2 = 0, \text{ and } 1 + C_3 = 5$, giving
 
-```{math}
-:enumerated: false
-
+$$
 \alpha(t) = \bx{\left(\frac{t^3}{3} + 1, \frac{t^2}{2}, e^t + 4\right)}.
-```
+$$
 
 $\square$.
 
@@ -491,55 +514,50 @@ side separately.
 
 The curve in question is 
 
-```{math}
-:enumerated: false
-
+$$
 \alpha(t) = (e^t, e^{-t}, \sqrt{2}t).
-```
+$$
 
 The reparametrization is given by 
 
-```{math}
-:enumerated: false
-
+$$
+\begin{aligned}
 \beta(s) = \alpha(h(s)) &= (e^{\log s}, e^{-\log s}, \sqrt{2}\log s) \\
     &= (s, \frac{1}{s}, \sqrt{2}\log s).
-```
+\end{aligned}
+$$
 
 Lemma 4.5 gives 
 
-```{math}
-:enumerated: false
-
+$$
 \beta'(s) = (dh/ds)(s)\alpha'(h(s)),
-```
+$$
 
 so calculate
 
-```{math}
-:enumerated: false
-
+$$
+\begin{aligned}
 \frac{dh}{ds} = \frac{1}{s},\\
-\alpha'(t) = (e^t, -e^t, \sqrt{2}),\\
-```
+\alpha'(t) = (e^t, -e^t, \sqrt{2}),
+\end{aligned}
+$$
 
 so
 
-```{math}
-:enumerated: false
-
+$$
+\begin{aligned}
 \frac{dh}{ds}(s)\alpha'(h(s)) &= \frac{1}{s}(s, -\frac{1}{s}, \sqrt{2}) \\
     &= (1, -\frac{1}{s^2}, \frac{\sqrt{2}}{s}),
-```
+\end{aligned}
+$$
 
 which is also the directly calculated
 
-```{math}
-:enumerated: false
-
-
-\beta'(s) = (1, -\frac{1}{s^2}, \frac{\sqrt{2}}{s}),\\
-```
+$$
+\begin{aligned}
+\beta'(s) = (1, -\frac{1}{s^2}, \frac{\sqrt{2}}{s}),
+\end{aligned}
+$$
 
 as desired. $\square$
 
@@ -561,27 +579,21 @@ In each case the domain is $\R$.
 
 (a) The curve $\alpha(t) = (a\cos{t}, b\sin{t})$ has $(x/a)^2 + (y/b)^2 = 1$, so let $a = 1/2$ and $b = 1$ to get
 
-```{math}
-:enumerated: false
-
+$$
 \bx{\alpha(t) = \left(\frac{\cos{t}}{2}, \sin{t}\right)}.
-```
+$$
 
 (b) Solve for $y$ and parametrize by $x$ to get
 
-```{math}
-:enumerated: false
-
+$$
 \bx{\alpha(t) = \left(t, \frac{1-3t}{4}\right)}. 
-```
+$$
 
 (c) 
 
-```{math}
-:enumerated: false
-
+$$
 \bx{\alpha(t) = (t, e^t)}.
-```
+$$
 
 ## Exercises 1.5
 
@@ -596,9 +608,7 @@ $\phi(V) = \sum f_i v_i.$
 
 By linearity, expand 
 
-```{math}
-:enumerated: false
-
+$$
 \begin{align}
 \phi(V) &= \left(\sum f_i dx_i\right) \left(\sum v_j U_j\right) \\
     &= \sum f_i dx_i \left(\sum v_j U_j\right) \\
@@ -608,7 +618,7 @@ By linearity, expand
     &= \sum_{(i, j)} f_i v_j \delta_{ij} \\
     &= \sum_i f_i v_i. \;\square
 \end{align}
-```
+$$
 
 ### Exercise 4
 
@@ -628,36 +638,29 @@ Let's check one with the definition for an arbitrary vector field $V$ first.
 
 (a)
 
-```{math}
-:enumerated: false
+$$
 d(f^5)(V) = V[f^5] = \sum v_i \pd{(f^5)}{x^i} = \sum v_i 5f^4 \pd {f}{x^i} = 5f^4 V[f] = 5f^4 df(V),
-```
+$$
 so
 
-```{math}
-:enumerated: false
-
+$$
 \bx{d(f^5) =  5f^4df},
-```
+$$
 
 using the vector field version of Lemma 3.2 and the usual chain rule. Going forward apply
 Lemma 5.7 which is effectively the calculation above in the general case.
 
 (b) 
 
-```{math}
-:enumerated: false
+$$
     d(\sqrt{f}) = \bx{{\frac{1}{2}f^{-1/2}df}}.
-
-```
+$$
 
 (c)
 
-```{math}
-:enumerated: false
-
+$$
 d(\log{(1 + f^2)}) = \bx{\frac{2f}{1 + f^2}df}.
-```
+$$
 
 ### Exercise 6
 
@@ -676,60 +679,49 @@ $\v{v}_p[f]$, for $\v{v}_p$ as in Exercise 1.
 
 (a)
 
-```{math}
-:enumerated: false
-
+$$
 df = d(xy^2 - yz^2) = y^2dx + (2xy - z^2)dy - 2yzdz.
-```
+$$
 
 We can treat $V = (1, 2, -3)$ as a constant vector field and apply the result of problem 2, so that with 
 
 $\v{p} = (0, -2, 1)$, 
 
-```{math}
-:enumerated: false
-
+$$
 \begin{align}
 \v{v}_p[f] = df(V)(\v{p}) &= 1 \cdot y^2(\v{p}) + 2 \cdot (2xy - z^2)(\v{p}) - 3 \cdot(-2yz)(\v{p}).\\
     &= 1 \cdot 4 + 2 \cdot -1 - 3 \cdot 4 = \bx{-10}.
 \end{align}
-```
+$$
 
 (b)
 
-```{math}
-:enumerated: false
-
+$$
 df = d(xe^{yz}) = e^{yz}dx + xze^{yz}dy + xye^{yz}dz.
-```
+$$
 
 At $\v{p}$, $e^{yz} = e^{-2}$, so $df = -2dx,$ and
 
-```{math}
-:enumerated: false
+$$
 \v{v}_p[f] = \bx{-2}.
-
-```
+$$
 
 (c)
 
-```{math}
-:enumerated: false
+$$
 \begin{align}
 df &= d(\sin{(xy)}\cos{(xz)})  \\
 &= \sin{(xy)}d\cos{(xz)} + \cos{(xz)}d\sin{(xy)} \\
     &= -\sin{(xy)}\sin{(xz)}(zdx + xdz) + \cos{(xy)}\cos{(xz)}(ydx + xdy) \\
     &= (y\cos{(xy)}\cos{(xz) - z\sin{(xy)}\sin{(xz)})}dx + x\cos{(xy)}\cos{(xz)}dy - x\sin{(xy)}\sin{(xz)}dz. 
 \end{align}
-```
+$$
 
 With $x = 0$ each term is $0$ except the first, so $df = ydx$ and 
 
-```{math}
-:enumerated: false
-
+$$
 \v{v}_p[f] = \bx{-4}.
-```
+$$
 
 ### Exercise 8
 
@@ -742,21 +734,20 @@ Prove Lemma 5.6 directly from the definition of $d$.
 We need $d(fg)(\v{v}_p) = f(\v{p})dg(\v{v}_p) + g(\v{p})df(\v{v}_p)$ for $\v{p}\in\R^3, \v{v}_p \in T_p(\R^3),$ or,
 using the definition,
 
-```{math}
-:enumerated: false
+$$
 \v{v}_p[fg] = f(\v{p})\v{v}_p[g] + g(\v{p})\v{v}_p[f].
-```
+$$
 
 But
 
-```{math}
-:enumerated: false
-
+$$
+\begin{aligned}
 \v{v}_p[fg] &= v_1 \pd{fg}{x}(\v{p}) + v_2 \pd{fg}{y}(\v{p}) + v_3\pd{fg}{z}(\v{p}) \\
     &= \sum v_i \left(f(\v{p}) \pd{g}{x_i}(\v{p}) + g(\v{p}) \pd{f}{x_i}(\v{p})\right) \\
     &= f(\v{p}) \sum v_i \pd{g}{x_i}(\v{p}) + g(\v{p}) \sum v_i \pd{f}{x_i}(\v{p}) \\
     &= f(\v{p})\v{v}_p[g] + g(\v{p})\v{v}_p[f],
-```
+\end{aligned}
+$$
 
 as desired. $\square$
 
@@ -772,12 +763,9 @@ Critical points, as in Exercise 9, are those points $\v{p}$ such that $df = 0$ a
 Suppose that $df \neq 0$ at $\v{p}$, so there is some $\v{v}_p$ such that $df(\v{v}_p) \neq 0$. Suppose without loss of generality that $df(\v{v}_p) = a > 0$. This is the derivative
 of a real-valued function $h(t)$ at $0$, so there exists $d$ such that 
 
-```{math}
-:enumerated: false
-
-
+$$
 \frac{h(\delta) - h(0)}{\delta} > \frac{a}{2},
-```
+$$
  so $h(\delta) > a\delta/2 + h(0)$.
 In particular, $h(0) = f(\v{p})$ is not at a local maximum. By taking $-\delta$, we can see that $f(\v{p})$ is also not at a local minimum, so $\v{p}$ 
 is neither a local minimum nor a local maximum of $f$, as desired. $\square$
@@ -793,24 +781,24 @@ Let $\phi = dx/y$ and $\psi = z\,dy$. Check the Leibnizian formula (3) of Theore
 *Solution:*
 
 From definitions (actually the comment above Definition 6.3),
-```{math}
-:enumerated: false
-
+$$
+\begin{aligned}
 d(\phi \wedge \psi) &= d\left(\frac{z}{y}\,dx\,dy\right) \\
     &= d\left(\frac{z}{y}\right) dx\,dy \\
     &= \left(\frac{-z}{y^2}dy + \frac{1}{y}dz\right)dx\,dy \\
     &= \frac{1}{y}dx\,dy\,dz,
-```
+\end{aligned}
+$$
 
 since there are two changes of sign moving $dz$ to the end. By Theorem 6.4, 
 
-```{math}
-:enumerated: false
-
+$$
+\begin{aligned}
 d(\phi \wedge \psi) &= d\phi \wedge \psi - \phi \wedge d\psi \\
     &= \frac{-1}{y^2}dy \wedge z dy - \frac{1}{y}dx \wedge dzdy \\
     &= \frac{1}{y}\,dx\,dy\,dz,
-```
+\end{aligned}
+$$
 
 as desired. $\square$
 
@@ -840,14 +828,13 @@ using Theorem 6.4 and Ex. 3.
 
 (d) 
 
-```{math}
-:enumerated: false
-
-
+$$
+\begin{aligned}
 d(gf\,df) + d(f\,dg) &= d(gf) \wedge df + df \wedge dg \\
     &= f\,dg \wedge df + df \wedge dg   \\
     &= \bx{(1 - f)\,df \wedge dg}.
-```
+\end{aligned}
+$$
 
 ### Exercise 6
 
@@ -859,61 +846,51 @@ $r, \vartheta, z$ and their differentials.
 
 *Solution:*
 
-```{math}
-:enumerated: false
-
+$$
+\begin{aligned}
 dx = \cos \vartheta dr - r\sin \vartheta d\vartheta,\\
 dy = \sin \vartheta dr + r\cos \vartheta d\vartheta,
-```
+\end{aligned}
+$$
 
 so
 
-```{math}
-:enumerated: false
-
+$$
+\begin{aligned}
 dx\,dy\,dz &= (\cos \vartheta dr - r\sin \vartheta d\vartheta) \wedge (\sin \vartheta dr + r\cos \vartheta d\vartheta) \, dz \\
     &= (r \cos^2 \vartheta dr\,d\vartheta + r\sin^2 \vartheta dr\,d\vartheta)\,dz \\
     &= \bx{r\,dr\,d\vartheta\,dz}.
-
-```
+\end{aligned}
+$$
 
 ### Exercise 8
 
 Classical *vector analysis* avoids the use of differential forms on $\R^3$ by converting 1-forms and 2-forms into
 vector fields by means of the following one-to-one correspondences:
 
-```{math}
-:enumerated: false
-
+$$
 \sum f_i dx_i \overset{(1)}{\leftrightarrow} \sum f_i U_i \overset{(2)}{\leftrightarrow} f_3 dx_1 dx_2- f_2 dx_1 dx_3 + f_1 dx_2 dx_3.
-
-```
+$$
 
 Vector analysis uses three basic operations based on partial differentiation.
 
 - *Gradient* of a function $f$:
 
-```{math}
-:enumerated: false
-
+$$
 \text{grad}\,f = \sum \pd{f}{x_i}U_i.
-```
+$$
 
 - *Curl* of a vector field $V = \sum f_i U_i$:
 
-```{math}
-:enumerated: false
-
+$$
 \text{curl}\,f = \left(\pd{f_3}{x_2} - \pd{f_2}{x_3}\right)U_1 + \left(\pd{f_1}{x_3} - \pd{f_3}{x_1}\right)U_2 + \left(\pd{f_2}{x_1} - \pd{f_1}{x_2}\right)U_3.
-```
+$$
 
 - *Divergence* of a vector field $V = \sum f_i U_i$:
 
-```{math}
-:enumerated: false
-
+$$
 \text{div}\,V = \sum \pd{f_i}{x_i}.
-```
+$$
 
 Prove that all three operations may be expressed by exterior derivatives as follows:
 
@@ -931,9 +908,8 @@ Prove that all three operations may be expressed by exterior derivatives as foll
 
 (b) Suppose $\phi = \sum f_idx_i$ and $V = \sum f_iU_i$. Then calculate $d\phi$:
 
-```{math}
-:enumerated: false
-
+$$
+\begin{aligned}
 d\phi = &\sum df_i dx_i \\
     = &\sum_i \sum_j \pd{f_i}{x_j}dx_jdx_i \\
     = &\pd{f_2}{x_1} dx_1dx_2 + \pd{f_3}{x_1} dx_1dx_3 + \pd{f_3}{x_2} dx_2dx_3 \\
@@ -941,17 +917,18 @@ d\phi = &\sum df_i dx_i \\
     = &\pd{f_2}{x_1} dx_1dx_2 + \pd{f_3}{x_1} dx_1dx_3 + \pd{f_3}{x_2} dx_2dx_3 \\
     -&\pd{f_1}{x_2} dx_1dx_2 - \pd{f_1}{x_3} dx_1dx_3 - \pd{f_2}{x_3} dx_2dx_3 \\
     \overset{(2)}\leftrightarrow &\text{curl}\,V.
-```
+\end{aligned}
+$$
 
 (c) Suppose $\eta = f_1dx_2dx_3 + f_2dx_3dx_1 + f_3dx_1dx_2 \overset{(2)}\leftrightarrow V$. Calculate $d\eta$:
 
-```{math}
-:enumerated: false
-
+$$
+\begin{aligned}
 d\eta &= df_1dy\,dz + df_2dz\,dx + df_3dx\,dy \\
     &= \pd{f_1}{x}dx\,dy\,dz + \pd{f_2}{y}dy\,dz\,dx + \pd{f_3}{z}dz\,dx\,dy \\
     &= \text{div}\,V dx\,dy\,dz.
-```
+\end{aligned}
+$$
 
 ## Exercises 1.7
 
@@ -984,23 +961,19 @@ Find a formula for the Jacobian matrix of $F$ at all points, and deduce that $F*
 
 Recall the formula for the Jacobian,
 
-```{math}
-:enumerated: false
-
+$$
 J = \left(\pd{f_i}{x_j}\right)_{i,j}.
-```
+$$
 
 Calculate to obtain
 
-```{math}
-:enumerated: false
-
+$$
 J = \left(
 \begin{matrix}
 2u & -2v \\
 2v & 2u
 \end{matrix}\right).
-```
+$$
 
 The determinant is $4u^2 + 4v^2$, which is nonzero except at the origin, meaning $J$ is non-singular except at the origin.
 Nonsingularity, invertibility, and linear isomorphism are synonymous in the case of finite-dimensional linear operators.
@@ -1044,14 +1017,12 @@ by checking that $FF^{-1}$ and $F^{-1}F$ are identity maps.
 (a) Suppose $(x, y) = (ve^u, 2u)$. Then $u = y/2$ and $v = x e^{-y/2}$, so $F$ is one-to-one. This same formula demonstrates that $F$ is onto since the expressions
 are well-defined for all $u, v$. Finally, the Jacobian
 
-```{math}
-:enumerated: false
-
+$$
 J = \left(\begin{matrix}
 ve^u & e^u \\
 2 & 0
 \end{matrix}\right)
-```
+$$
 
 has determinant $-2e^u \neq 0$, so is nonsingular and $F$ is regular. By the inverse mapping theorem, there is a differentiable local inverse function
 in a neighborhood each point which must be the function $F^{-1}$, which

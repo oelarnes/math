@@ -1,0 +1,19 @@
+[project]
+name = "math-notes"
+version = "0.1.0"
+description = "MagicFlea's math notes (Quarto site)"
+requires-python = ">=3.12"
+dependencies = [
+    "numpy",
+    "plotly",
+    "jupyter",
+    "pyyaml",
+]
+
+[tool.pdm]
+distribution = false
+
+[tool.pdm.dev-dependencies]
+dev = [
+    "-e file:///${PROJECT_ROOT}/src#egg=plot-dg",
+]
