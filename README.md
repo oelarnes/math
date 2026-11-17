@@ -27,6 +27,8 @@ pdm run quarto preview --host 0.0.0.0 --port 3000 --no-browser
 Ad hoc pages live in `ad_hoc/` (gitignored): standalone `.html` files are copied to the site root as-is,
 and `.qmd` files render unlisted and noindex. Nothing in `ad_hoc/` is committed.
 
+`skill_docs/` holds working notes for the 17lands skill rating model.
+
 Publish:
 
 ```
