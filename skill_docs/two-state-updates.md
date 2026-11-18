@@ -16,11 +16,13 @@ $$
 s' = m + \frac{P}{S}(y - m), \qquad d' = \frac{D}{S}(y - m)
 $$
 
-```{math}
+$$
+\begin{aligned}
 \operatorname{Var}(s') &= P - \frac{P^2}{S} = \frac{P(D + Q)}{S} \\
 \operatorname{Var}(d') &= D - \frac{D^2}{S} = \frac{D(P + Q)}{S} \\
 \operatorname{Cov}(s', d') &= -\frac{PD}{S}
-```
+\end{aligned}
+$$
 
 $$
 t' = m + \frac{P + D}{S}(y - m), \qquad \operatorname{Var}(t') = \frac{(P + D)\,Q}{S}
@@ -40,11 +42,13 @@ $$
 s' = m_s + \frac{P}{S}(y - m_s), \qquad d' = m_d + \frac{C}{S}(y - m_s)
 $$
 
-```{math}
+$$
+\begin{aligned}
 \operatorname{Var}(s') &= P - \frac{P^2}{S} = \frac{PQ}{S} \\
 \operatorname{Var}(d') &= D - \frac{C^2}{S} \\
 \operatorname{Cov}(s', d') &= C - \frac{PC}{S} = \frac{CQ}{S}
-```
+\end{aligned}
+$$
 
 $$
 t' = m_s + m_d + \frac{P + C}{S}(y - m_s), \qquad

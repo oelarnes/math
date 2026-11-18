@@ -67,11 +67,13 @@ $$
 
 Take
 
-```{math}
+$$
+\begin{aligned}
 \ell'(s) &= w\frac{q'}{q} - (n - w)\frac{q'}{1 - q} - \frac{\lambda(s - m)}{P} \\
 &= w(1 - q)\lambda - (n - w)q\lambda - \frac{\lambda(s - m)}{P} \\
 &= \lambda\left[(w - nq) - \frac{s - m}{P}\right],
-```
+\end{aligned}
+$$
 
 so we find the (Bayesian) maximum likelihood solution, or posterior mode, at the solution to
 
@@ -101,25 +103,31 @@ $$
 
 To infer the posterior distribution, construct a Gaussian observation model centered at $p = p\!\left(s + \frac{S}{P}(s - m)\right)$ for a fixed $s$, e.g. the fixed point of the MAP solution. Then model
 
-```{math}
+$$
+\begin{aligned}
 y &= p(x + a) + \varepsilon \\
 &\approx p + v a + v\left(x - \left(s + \frac{S}{P}(s - m)\right)\right) + \varepsilon.
-```
+\end{aligned}
+$$
 
 For $n$ independent observations $\varepsilon \sim \mathcal N\!\left(0, \frac{p(1 - p)}{n}\right)$, but game results are not independent. Local autocorrelation (e.g. over one event) means that we can model $\varepsilon \sim \mathcal N\!\left(0, \frac{\kappa p(1 - p)}{n}\right)$ for $\kappa > 0$: $\kappa < 1$ results from negative autocorrelation due to e.g. record-based pairing, $\kappa > 1$ results from e.g. shared deck strength variance. Then $v a + \varepsilon$ is a Gaussian variable $\mathcal N\!\left(0, v^2 S + \frac{\kappa p(1 - p)}{n}\right)$, and the joint density for $x$ and $y$ is
 
-```{math}
+$$
+\begin{aligned}
 P_{x,y} &\propto \exp\left(-\frac{\left(y - p - v\left(x - \left(s + \frac{S}{P}(s - m)\right)\right)\right)^2}{2\left(v^2 S + \frac{\kappa p(1 - p)}{n}\right)} - \frac{(x - m)^2}{2P}\right) \\
 &= \exp\left(-\frac{\left(x - \left(\frac{y - p}{v} + s + \frac{S}{P}(s - m)\right)\right)^2}{2\left(S + \frac{\kappa}{n v}\right)} - \frac{(x - m)^2}{2P}\right)
-```
+\end{aligned}
+$$
 
 so
 
-```{math}
+$$
+\begin{aligned}
 m' &= \frac{P\left(\frac{y - p}{v} + s + \frac{S}{P}(s - m)\right) + \left(S + \frac{\kappa}{n v}\right) m}{P + S + \frac{\kappa}{n v}} \\
 &= \frac{s\left(P + S + \frac{\kappa}{n v}\right) + P\frac{y - p}{v} - \frac{\kappa}{n v}(s - m)}{P + S + \frac{\kappa}{n v}} \\
 &= s + \frac{\frac{n}{\kappa}(y - p) - \frac{s - m}{P}}{\frac{\lambda n v}{\kappa} + \frac{1}{P}}.
-```
+\end{aligned}
+$$
 
 When $\kappa = 1$, this is fixed under the Newton's method MAP solution (it's the same process), justifying the model. Then
 
@@ -131,11 +139,13 @@ $$
 
 Take a single-elimination event: the player keeps playing until the first loss, so the number of games is $N \sim \mathrm{Geo}(1 - p)$ and the wins are $W = N - 1$. Then
 
-```{math}
+$$
+\begin{aligned}
 E[N] &= \frac{1}{1 - p} = \mu, \qquad p = 1 - \frac{1}{\mu}, \\
 \operatorname{Var}(N) &= \frac{p}{(1 - p)^2} = \mu^2 - \mu, \\
 E[N^2] &= \frac{1 + p}{(1 - p)^2}, \qquad E[N^3] = \frac{1 + 4p + p^2}{(1 - p)^3},
-```
+\end{aligned}
+$$
 
 and $U = W - pN = (1 - p)N - 1 = \frac{N}{\mu} - 1$.
 
@@ -165,10 +175,12 @@ $$
 
 Expand
 
-```{math}
+$$
+\begin{aligned}
 B &= E\left[\left(U + (p - \hat p)N\right)^2\right] - E[U^2] \\
 &= E\left[2\left(\frac{N}{\mu} - 1\right)(p - \hat p)N + (p - \hat p)^2 N^2\right],
-```
+\end{aligned}
+$$
 
 and write
 
@@ -178,14 +190,16 @@ $$
 
 Substitute, keeping only first-order terms in $\gamma$, dropping terms with $E[z] = 0$ and substituting $E[z^2] = 1$:
 
-```{math}
+$$
+\begin{aligned}
 B &= E\left[2\left(\frac{N}{\mu} - 1\right)\left(-\frac{\gamma(N - \mu)}{\mu^2} + \frac{\gamma(\mu^2 - \mu)}{\mu^3}\right)N + \frac{\gamma(\mu^2 - \mu)}{\mu^4}N^2\right] \\
 &= \frac{\gamma}{\mu^3} E\left[2(N - \mu)(2\mu - N - 1)N + (\mu - 1)N^2\right] \\
 &= \frac{\gamma}{\mu^3} E\left[6\mu N^2 - 2N^3 - 2N^2 - 4\mu^2 N + 2\mu N + \mu N^2 - N^2\right] \\
 &= \frac{\gamma}{\mu^3}\left[-2E[N^3] + (7\mu - 3)E[N^2] + (2\mu - 4\mu^2)E[N]\right] \\
 &= \gamma(1 - p)^3\left[\frac{-2 - 8p - 2p^2}{(1 - p)^3} + \frac{\left(7 - 3(1 - p)\right)(1 + p)}{(1 - p)^3} + \frac{2(1 - p) - 4}{(1 - p)^3}\right] \\
 &= \gamma\left[-2 - 8p - 2p^2 + 4 + 7p + 3p^2 + 2 - 2p - 4\right],
-```
+\end{aligned}
+$$
 
 so
 
