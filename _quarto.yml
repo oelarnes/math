@@ -4,7 +4,6 @@ project:
   render:
     - index.qmd
     - oneill/*.qmd
-    - ad_hoc/*.qmd
 
 execute:
   freeze: auto

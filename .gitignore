@@ -15,5 +15,6 @@ _site
 .pdm-python
 .python-version
 
-# Ad Hoc content
+# Reports live in ~/reports; never commit one here by accident
 /ad_hoc/
+/notes/
